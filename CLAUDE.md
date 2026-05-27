@@ -135,10 +135,10 @@ skill-for-lion-claude/
 
 - **홈** (`pages/index.vue`) — Hero(검색+카테고리), 추천 리스트, 마감임박 스크롤, 등록 CTA
 - **검색** (`pages/search.vue`) — 검색바+필터(sticky), 세로형 카드 리스트, 상세보기 팝업
+- **등록** (`pages/register.vue`) — 클래스 등록 폼, Supabase INSERT, 이미지 업로드
 
 ## 미구현
 
-- 등록 화면 (`/register`)
 - 내정보 화면 (`/profile`)
 - 신청하기 API 연결 (현재 alert 처리)
 - 마감 임박 기준일이 하드코딩 — API 연결 시 서버 시간 기준으로 교체 필요
@@ -178,9 +178,24 @@ NUXT_PUBLIC_SUPABASE_URL=https://totwcjbvukmnfehhbfca.supabase.co
 NUXT_PUBLIC_SUPABASE_ANON_KEY=...
 ```
 
+## 사용 테이블 / 스토리지
+
+| 리소스 | 설명 |
+|---|---|
+| `classes` 테이블 | 클래스 목록 — SELECT(공개) + INSERT(공개) RLS 정책 적용 |
+| `class-thumbnails` 버킷 | 썸네일 이미지 스토리지 — public 버킷, 읽기/쓰기 허용 |
+
+## 등록 화면 (`/register`) 상세
+
+- 입력 필드: 제목, 카테고리(pill 선택), 가격, 지역, 수업날짜, 마감날짜, 최대인원, 상세설명
+- 썸네일: 파일 선택 → FileReader 미리보기 → Supabase Storage 업로드 → public URL 저장
+  - 이미지 미선택 시 picsum 랜덤 이미지 사용
+- 등록 성공 시: `refreshNuxtData('classes')` → 토스트 메시지 → 1.5초 후 `/search` 이동
+- 입력값 검증: 필수 항목 + 마감날짜 < 수업날짜 조건
+
 ## 다음 작업자 참고
 
-- 현재 조회(Read)만 구현. Create/Update/Delete 미구현.
 - 검색/필터는 클라이언트 사이드 필터링 (DB 쿼리 아님) — 데이터 많아지면 서버 사이드 쿼리로 전환 필요.
 - 마감 임박 판단(`isDeadlineSoon`)은 브라우저 로컬 시간 기준 — 서비스 운영 시 서버 시간 기준으로 교체 필요.
 - `@supabase/supabase-js` 직접 사용 (`@nuxtjs/supabase` 모듈 미사용) — auth 필요 시 모듈 전환 검토.
+- Update/Delete 미구현 — 등록한 클래스 수정/삭제 기능 필요 시 추가 작업 필요.
