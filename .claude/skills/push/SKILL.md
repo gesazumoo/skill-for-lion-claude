@@ -3,7 +3,12 @@
 순서:
 1. `git status`로 변경된 파일 목록을 확인해.
 2. 변경사항이 없으면 사용자에게 알리고 종료해.
-3. `git diff HEAD`와 변경된 파일 내용을 읽어서 민감 정보 여부를 검사해.
+3. CLAUDE.md를 읽고 "현재 프로젝트 상태" 섹션이 실제 파일 구조와 맞는지 확인해.
+   아래 항목 중 실제와 다른 게 있으면 해당 섹션만 조용히 업데이트해 (사용자에게 별도 보고 불필요):
+   - 구현된 화면 목록 (`frontend/app/pages/` 기준)
+   - 구현된 UI 컴포넌트 목록 (`frontend/app/components/` 기준)
+   - 미구현 항목
+4. `git diff HEAD`와 변경된 파일 내용을 읽어서 민감 정보 여부를 검사해.
    다음 패턴이 발견되면 즉시 커밋을 거부하고 사용자에게 해당 파일명과 이유를 한국어로 알려준 뒤 종료해:
    - API 키, 토큰: `sk-`, `Bearer `, `api_key`, `api-key`, `apikey`, `access_token`, `secret_key` 등
    - 비밀번호: `password`, `passwd`, `pwd` 등이 값과 함께 있는 경우
