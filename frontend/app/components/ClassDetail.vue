@@ -11,131 +11,147 @@ const emit = defineEmits<{
 }>()
 
 const { isDeadlineSoon, formatPrice, formatDate } = useClasses()
-const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
+const { isLoggedIn, user } = useAuth()
+const router = useRouter()
+const nuxtApp = useNuxtApp()
 
+const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
 const participantRate = computed(() =>
   Math.round((props.classItem.currentParticipants / props.classItem.maxParticipants) * 100)
 )
 
-function handleApply() {
-  alert(`"${props.classItem.title}" 클래스를 신청했습니다!`)
-  emit('close')
+const isApplying = ref(false)
+const isApplied = ref(false)
+const applyError = ref('')
+
+async function handleApply() {
+  if (!isLoggedIn.value) {
+    emit('close')
+    router.push('/login')
+    return
+  }
+  if (isApplied.value) return
+  isApplying.value = true
+  applyError.value = ''
+  try {
+    const { error } = await (nuxtApp.$supabase as any)
+      .from('enrollments')
+      .insert({ class_id: props.classItem.id, user_id: user.value.id })
+    if (error) {
+      if (error.code === '23505') applyError.value = '이미 신청한 클래스입니다'
+      else throw error
+    } else {
+      isApplied.value = true
+      await refreshNuxtData('classes')
+      setTimeout(() => emit('close'), 1500)
+    }
+  } catch {
+    applyError.value = '신청 중 오류가 발생했습니다. 다시 시도해주세요.'
+  } finally {
+    isApplying.value = false
+  }
 }
 </script>
 
 <template>
   <Teleport to="body">
-    <!-- 딤 오버레이 -->
     <div
       class="fixed inset-0 z-50 flex items-end justify-center"
       @click.self="emit('close')"
     >
-      <div class="absolute inset-0 bg-black/50" @click="emit('close')" />
+      <div class="absolute inset-0 bg-black/60" @click="emit('close')" />
 
-      <!-- 바텀 시트 — Apple sheet 스타일 -->
-      <div class="relative w-full max-w-lg bg-white rounded-t-[28px] max-h-[92vh] flex flex-col overflow-hidden">
+      <!-- Sheet — flat top edge, Nike system -->
+      <div class="relative w-full max-w-lg bg-white max-h-[92vh] flex flex-col overflow-hidden">
 
-        <!-- 드래그 핸들 -->
+        <!-- Drag handle -->
         <div class="flex-shrink-0 flex justify-center pt-3 pb-1">
-          <div class="w-10 h-1 bg-[#e0e0e0] rounded-full" />
+          <div class="w-10 h-[3px] bg-[#cacacb]" />
         </div>
 
-        <!-- 닫기 버튼 -->
+        <!-- Close -->
         <button
-          class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-[#f5f5f7] rounded-full text-[#7a7a7a] text-lg leading-none z-10 active:opacity-70"
+          class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-[#f5f5f5] text-[#707072] text-xl leading-none z-10 active:opacity-60"
           @click="emit('close')"
-        >
-          ×
-        </button>
+        >×</button>
 
-        <!-- 스크롤 영역 -->
+        <!-- Scroll area -->
         <div class="overflow-y-auto flex-1">
 
-          <!-- 썸네일 이미지 -->
-          <div class="relative">
+          <!-- Thumbnail — full-bleed on soft-cloud, 0 radius -->
+          <div class="relative bg-[#f5f5f5]">
             <img
               :src="classItem.thumbnail"
               :alt="classItem.title"
-              class="w-full h-56 object-cover bg-[#f5f5f7]"
+              class="w-full h-56 object-cover"
             />
             <span
               v-if="deadlineSoon"
-              class="absolute top-3 left-3 bg-[#ff3b30] text-white text-[11px] font-semibold tracking-[-0.12px] px-2.5 py-1 rounded-[9999px]"
-            >
-              마감 임박
-            </span>
+              class="absolute top-3 left-3 text-[#d30005] text-[12px] font-[500] uppercase"
+            >마감임박</span>
           </div>
 
-          <!-- 상세 정보 -->
+          <!-- Content -->
           <div class="px-6 pt-6 pb-4">
 
-            <!-- 카테고리 -->
-            <p class="text-[12px] font-normal text-[#7a7a7a] uppercase tracking-[-0.12px] mb-2">
+            <p class="text-[12px] font-[500] text-[#707072] uppercase tracking-[0.04em] mb-2">
               {{ classItem.category }}
             </p>
 
-            <!-- 제목 — lead (28px / 400 / 1.14) -->
-            <h2 class="text-[28px] font-semibold text-[#1d1d1f] leading-[1.14] tracking-[-0.374px]">
+            <h2 class="text-[32px] font-[500] text-[#111111] leading-[1.2]">
               {{ classItem.title }}
             </h2>
 
-            <!-- 가격 — display + Action Blue -->
-            <p class="text-[34px] font-semibold text-[#0066cc] tracking-[-0.374px] mt-3">
+            <p class="text-[32px] font-[500] text-[#111111] mt-3">
               {{ formatPrice(classItem.price) }}
             </p>
 
-            <!-- 구분선 -->
-            <div class="h-px bg-[#f0f0f0] my-5" />
+            <div class="h-px bg-[#e5e5e5] my-5" />
 
-            <!-- 메타 정보 -->
             <dl class="space-y-3">
               <div class="flex items-start gap-3">
-                <dt class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px] w-14 flex-shrink-0">날짜</dt>
-                <dd class="text-[17px] font-normal text-[#1d1d1f] tracking-[-0.374px]">{{ formatDate(classItem.date) }}</dd>
+                <dt class="text-[14px] font-[500] text-[#707072] w-14 flex-shrink-0 uppercase">날짜</dt>
+                <dd class="text-[16px] font-[400] text-[#111111]">{{ formatDate(classItem.date) }}</dd>
               </div>
               <div class="flex items-start gap-3">
-                <dt class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px] w-14 flex-shrink-0">장소</dt>
-                <dd class="text-[17px] font-normal text-[#1d1d1f] tracking-[-0.374px]">{{ classItem.location }}</dd>
+                <dt class="text-[14px] font-[500] text-[#707072] w-14 flex-shrink-0 uppercase">장소</dt>
+                <dd class="text-[16px] font-[400] text-[#111111]">{{ classItem.location }}</dd>
               </div>
               <div class="flex items-start gap-3">
-                <dt class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px] w-14 flex-shrink-0">마감일</dt>
-                <dd class="text-[17px] font-normal tracking-[-0.374px]" :class="deadlineSoon ? 'text-[#ff3b30]' : 'text-[#1d1d1f]'">
+                <dt class="text-[14px] font-[500] w-14 flex-shrink-0 uppercase" :class="deadlineSoon ? 'text-[#d30005]' : 'text-[#707072]'">마감일</dt>
+                <dd class="text-[16px] font-[400]" :class="deadlineSoon ? 'text-[#d30005]' : 'text-[#111111]'">
                   {{ formatDate(classItem.deadline) }}
-                  <span v-if="deadlineSoon" class="text-[12px] ml-1">· 마감 임박</span>
                 </dd>
               </div>
             </dl>
 
-            <!-- 구분선 -->
-            <div class="h-px bg-[#f0f0f0] my-5" />
+            <div class="h-px bg-[#e5e5e5] my-5" />
 
-            <!-- 참가 인원 -->
+            <!-- Participants -->
             <div>
               <div class="flex justify-between items-baseline mb-2">
-                <p class="text-[14px] font-semibold text-[#1d1d1f] tracking-[-0.224px]">참가 현황</p>
-                <p class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px]">
+                <p class="text-[14px] font-[500] text-[#111111] uppercase">참가 현황</p>
+                <p class="text-[14px] font-[500] text-[#707072]">
                   {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명
                 </p>
               </div>
-              <!-- 참가율 바 -->
-              <div class="h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
+              <div class="h-[3px] bg-[#f5f5f5] overflow-hidden">
                 <div
-                  class="h-full bg-[#0066cc] rounded-full transition-all"
+                  class="h-full bg-[#111111] transition-all"
                   :style="{ width: `${participantRate}%` }"
                 />
               </div>
-              <p class="text-[12px] font-normal text-[#7a7a7a] tracking-[-0.12px] mt-1.5">
+              <p class="text-[12px] font-[500] text-[#707072] uppercase mt-2">
                 잔여 {{ classItem.maxParticipants - classItem.currentParticipants }}자리
               </p>
             </div>
 
-            <!-- 구분선 -->
-            <div class="h-px bg-[#f0f0f0] my-5" />
+            <div class="h-px bg-[#e5e5e5] my-5" />
 
-            <!-- 상세 설명 -->
+            <!-- Description -->
             <div>
-              <p class="text-[14px] font-semibold text-[#1d1d1f] tracking-[-0.224px] mb-2">클래스 소개</p>
-              <p class="text-[17px] font-normal text-[#1d1d1f] leading-[1.47] tracking-[-0.374px]">
+              <p class="text-[14px] font-[500] text-[#111111] uppercase mb-3">클래스 소개</p>
+              <p class="text-[16px] font-[400] text-[#111111] leading-[1.5]">
                 {{ classItem.description }}
               </p>
             </div>
@@ -144,13 +160,26 @@ function handleApply() {
           </div>
         </div>
 
-        <!-- 하단 고정: 신청하기 버튼 -->
-        <div class="flex-shrink-0 bg-white border-t border-[#f0f0f0] px-6 py-4">
+        <!-- CTA footer -->
+        <div class="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-6 py-4 space-y-2">
+          <p v-if="applyError" class="text-[13px] text-[#d30005] text-center font-[500] uppercase">
+            {{ applyError }}
+          </p>
           <button
-            class="w-full bg-[#0066cc] text-white text-[17px] font-normal tracking-[-0.374px] py-[14px] rounded-[9999px] active:scale-95 transition-transform duration-100"
+            :disabled="isApplying || isApplied"
+            class="w-full text-[16px] font-[500] h-12 rounded-[30px] transition-opacity active:opacity-60 disabled:opacity-50"
+            :class="isApplied ? 'bg-[#007d48] text-white' : 'bg-[#111111] text-white'"
             @click="handleApply"
           >
-            신청하기
+            <span v-if="isApplying" class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4" />
+                <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              신청 중...
+            </span>
+            <span v-else-if="isApplied">신청 완료</span>
+            <span v-else>{{ isLoggedIn ? '신청하기' : '로그인 후 신청하기' }}</span>
           </button>
         </div>
 

@@ -1,19 +1,54 @@
 <script setup lang="ts">
+import { useClasses } from '~/composables/useClasses'
+
 const { user, isLoggedIn, signOut } = useAuth()
 const router = useRouter()
+const nuxtApp = useNuxtApp()
+const { formatPrice, formatDate } = useClasses()
 
 const isSigningOut = ref(false)
 const authReady = ref(false)
+const myClasses = ref<any[]>([])
+const myEnrollments = ref<any[]>([])
+const isLoadingActivity = ref(false)
 
 onMounted(() => {
-  // 클라이언트에서 auth 상태 확인 후 렌더링
-  setTimeout(() => { authReady.value = true }, 50)
+  setTimeout(async () => {
+    authReady.value = true
+    if (isLoggedIn.value) await fetchMyActivity()
+  }, 50)
 })
+
+watch(isLoggedIn, (val) => { if (val) fetchMyActivity() })
+
+async function fetchMyActivity() {
+  isLoadingActivity.value = true
+  try {
+    const [classesRes, enrollmentsRes] = await Promise.all([
+      (nuxtApp.$supabase as any)
+        .from('classes')
+        .select('*')
+        .eq('creator_id', user.value.id)
+        .order('created_at', { ascending: false }),
+      (nuxtApp.$supabase as any)
+        .from('enrollments')
+        .select('*, classes(*)')
+        .eq('user_id', user.value.id)
+        .order('created_at', { ascending: false }),
+    ])
+    myClasses.value = classesRes.data ?? []
+    myEnrollments.value = (enrollmentsRes.data ?? []).map((e: any) => e.classes).filter(Boolean)
+  } finally {
+    isLoadingActivity.value = false
+  }
+}
 
 async function handleSignOut() {
   isSigningOut.value = true
   try {
     await signOut()
+    myClasses.value = []
+    myEnrollments.value = []
   } finally {
     isSigningOut.value = false
   }
@@ -26,119 +61,165 @@ const userInitial = computed(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f5f5f7] max-w-lg mx-auto pb-[72px]">
+  <div class="min-h-screen bg-white max-w-lg mx-auto pb-[72px]">
 
-    <!-- 로딩 중 (auth 상태 확인 전) -->
+    <!-- Loading state -->
     <template v-if="!authReady">
-      <section class="bg-[#272729] px-5 pt-16 pb-10">
-        <div class="w-32 h-6 bg-[#3a3a3c] rounded-full animate-pulse mb-4" />
-        <div class="w-48 h-9 bg-[#3a3a3c] rounded-full animate-pulse mb-3" />
-        <div class="w-56 h-5 bg-[#3a3a3c] rounded-full animate-pulse" />
+      <section class="bg-[#111111] px-5 pt-16 pb-10">
+        <div class="w-32 h-4 bg-[#222222] animate-pulse mb-6" />
+        <div class="w-48 h-16 bg-[#222222] animate-pulse mb-3" />
       </section>
     </template>
 
-    <!-- ── 비로그인 상태 ── -->
+    <!-- ── Not logged in ── -->
     <template v-else-if="!isLoggedIn">
 
-      <!-- Dark Hero -->
-      <section class="bg-[#272729] px-5 pt-16 pb-12 text-center">
-        <div class="w-20 h-20 bg-[#3a3a3c] rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg class="w-10 h-10 text-[rgba(235,235,245,0.4)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <!-- Campaign hero -->
+      <section class="bg-[#111111] px-5 pt-16 pb-10 text-center">
+        <div class="w-16 h-16 bg-[#222222] flex items-center justify-center mx-auto mb-8">
+          <svg class="w-8 h-8 text-[#9e9ea0]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
         </div>
-        <h1 class="text-[28px] font-semibold text-white leading-[1.1] tracking-[-0.374px] mb-3">
-          로그인하고<br />더 많은 기능을 사용하세요
+        <h1 class="font-display text-[56px] leading-[0.9] text-white uppercase mb-5">
+          MY<br />PROFILE
         </h1>
-        <p class="text-[17px] font-normal text-[#cccccc] leading-[1.47] tracking-[-0.374px]">
+        <p class="text-[16px] font-[400] text-[#9e9ea0] leading-[1.5]">
           클래스 등록, 신청 내역 확인 등<br />다양한 기능을 이용할 수 있어요
         </p>
       </section>
 
-      <!-- White CTA Section -->
+      <!-- CTA section -->
       <section class="bg-white px-5 py-10 space-y-3">
         <button
-          class="w-full bg-[#0066cc] text-white text-[17px] font-light tracking-[-0.374px] py-[14px] rounded-[9999px] transition-all active:scale-[0.98]"
+          class="w-full bg-[#111111] text-white text-[16px] font-[500] h-12 rounded-[30px] transition-opacity active:opacity-60"
           @click="router.push('/login')"
         >
           로그인하기
         </button>
         <button
-          class="w-full bg-[#f5f5f7] text-[#1d1d1f] text-[17px] font-light tracking-[-0.374px] py-[14px] rounded-[9999px] transition-all active:scale-[0.98]"
+          class="w-full bg-[#f5f5f5] text-[#111111] text-[16px] font-[500] h-12 rounded-[30px] transition-opacity active:opacity-60"
           @click="router.push('/login?mode=signup')"
         >
           회원가입하기
         </button>
       </section>
 
-      <!-- Parchment Info Section -->
-      <section class="bg-[#f5f5f7] px-5 py-10">
-        <h2 class="text-[17px] font-semibold text-[#1d1d1f] tracking-[-0.374px] mb-5">
-          로그인하면 이런 게 가능해요
-        </h2>
+      <!-- Feature list -->
+      <section class="bg-[#f5f5f5] px-5 py-10">
+        <h2 class="text-[14px] font-[500] text-[#111111] uppercase tracking-[0.08em] mb-6">로그인하면 가능한 것들</h2>
         <div class="space-y-4">
           <div v-for="item in [
-            { icon: '📋', text: '내가 등록한 클래스 관리' },
-            { icon: '🎯', text: '신청한 클래스 내역 확인' },
-            { icon: '🔔', text: '마감 임박 알림 받기' },
-          ]" :key="item.text" class="flex items-center gap-3">
-            <span class="text-[22px]">{{ item.icon }}</span>
-            <span class="text-[15px] font-normal text-[#1d1d1f] tracking-[-0.224px]">{{ item.text }}</span>
+            '내가 등록한 클래스 관리',
+            '신청한 클래스 내역 확인',
+            '마감 임박 알림 받기',
+          ]" :key="item" class="flex items-center gap-4">
+            <div class="w-1.5 h-1.5 bg-[#111111]" />
+            <span class="text-[16px] font-[400] text-[#111111]">{{ item }}</span>
           </div>
         </div>
       </section>
     </template>
 
-    <!-- ── 로그인 상태 ── -->
+    <!-- ── Logged in ── -->
     <template v-else>
 
-      <!-- Dark Hero — 사용자 정보 -->
-      <section class="bg-[#272729] px-5 pt-16 pb-12">
-        <div class="flex items-center gap-4 mb-6">
-          <div class="w-16 h-16 bg-[#0066cc] rounded-full flex items-center justify-center flex-shrink-0">
-            <span class="text-[24px] font-semibold text-white">{{ userInitial }}</span>
+      <!-- Campaign hero — user info -->
+      <section class="bg-[#111111] px-5 pt-16 pb-10">
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-14 h-14 bg-white flex items-center justify-center flex-shrink-0">
+            <span class="text-[24px] font-[500] text-[#111111]">{{ userInitial }}</span>
           </div>
           <div>
-            <p class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px] mb-0.5">내 계정</p>
-            <p class="text-[17px] font-semibold text-white tracking-[-0.374px] break-all">
-              {{ user?.email }}
-            </p>
+            <p class="text-[12px] font-[500] text-[#9e9ea0] uppercase tracking-[0.08em] mb-1">내 계정</p>
+            <p class="text-[16px] font-[500] text-white break-all">{{ user?.email }}</p>
           </div>
         </div>
-        <div class="inline-flex items-center gap-1.5 bg-[#30d158]/20 px-3 py-1.5 rounded-[9999px]">
-          <div class="w-1.5 h-1.5 bg-[#30d158] rounded-full" />
-          <span class="text-[13px] font-medium text-[#30d158] tracking-[-0.2px]">로그인됨</span>
+        <div class="inline-flex items-center gap-2 mt-2">
+          <div class="w-1.5 h-1.5 bg-[#007d48]" />
+          <span class="text-[12px] font-[500] text-[#9e9ea0] uppercase tracking-[0.04em]">로그인됨</span>
         </div>
       </section>
 
-      <!-- White — 활동 내역 (플레이스홀더) -->
+      <!-- My registered classes -->
       <section class="bg-white px-5 py-8">
-        <h2 class="text-[17px] font-semibold text-[#1d1d1f] tracking-[-0.374px] mb-5">
-          내 활동
-        </h2>
-        <div class="space-y-1">
+        <div class="flex items-baseline justify-between mb-1">
+          <h2 class="text-[32px] font-[500] text-[#111111] uppercase leading-[1.2]">내 클래스</h2>
+          <span class="text-[14px] font-[500] text-[#707072] uppercase">{{ myClasses.length }}개</span>
+        </div>
+        <div class="h-px bg-[#e5e5e5] mb-5 mt-4" />
+
+        <!-- Loading -->
+        <div v-if="isLoadingActivity" class="space-y-3">
+          <div v-for="i in 2" :key="i" class="h-16 bg-[#f5f5f5] animate-pulse" />
+        </div>
+
+        <!-- Empty -->
+        <p v-else-if="myClasses.length === 0" class="text-[14px] font-[400] text-[#707072] py-2">
+          아직 등록한 클래스가 없어요
+        </p>
+
+        <!-- List -->
+        <div v-else class="space-y-0">
           <div
-            v-for="item in [
-              { label: '등록한 클래스', value: '-' },
-              { label: '신청한 클래스', value: '-' },
-            ]"
-            :key="item.label"
-            class="flex items-center justify-between py-4 border-b border-[#f5f5f7] last:border-0"
+            v-for="cls in myClasses"
+            :key="cls.id"
+            class="flex gap-3 py-4 border-b border-[#e5e5e5] last:border-0"
           >
-            <span class="text-[17px] font-normal text-[#1d1d1f] tracking-[-0.374px]">{{ item.label }}</span>
-            <span class="text-[17px] font-normal text-[#7a7a7a] tracking-[-0.374px]">{{ item.value }}</span>
+            <div class="bg-[#f5f5f5] w-14 h-14 flex-shrink-0">
+              <img :src="cls.thumbnail" :alt="cls.title" class="w-full h-full object-cover" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-[16px] font-[500] text-[#111111] truncate">{{ cls.title }}</p>
+              <p class="text-[14px] font-[500] text-[#707072] mt-0.5">{{ formatDate(cls.date) }} · {{ formatPrice(cls.price) }}</p>
+              <p class="text-[12px] font-[500] text-[#9e9ea0] uppercase mt-0.5">{{ cls.current_participants }}/{{ cls.max_participants }}명 신청</p>
+            </div>
           </div>
         </div>
-        <p class="text-[13px] text-[#7a7a7a] tracking-[-0.2px] mt-4">
-          활동 내역 기능은 곧 추가될 예정이에요
-        </p>
       </section>
 
-      <!-- Dark — 로그아웃 -->
-      <section class="bg-[#272729] px-5 py-8">
+      <!-- My enrolled classes -->
+      <section class="bg-[#f5f5f5] px-5 py-8">
+        <div class="flex items-baseline justify-between mb-1">
+          <h2 class="text-[32px] font-[500] text-[#111111] uppercase leading-[1.2]">신청 내역</h2>
+          <span class="text-[14px] font-[500] text-[#707072] uppercase">{{ myEnrollments.length }}개</span>
+        </div>
+        <div class="h-px bg-[#cacacb] mb-5 mt-4" />
+
+        <!-- Loading -->
+        <div v-if="isLoadingActivity" class="space-y-3">
+          <div v-for="i in 2" :key="i" class="h-16 bg-[#e5e5e5] animate-pulse" />
+        </div>
+
+        <!-- Empty -->
+        <p v-else-if="myEnrollments.length === 0" class="text-[14px] font-[400] text-[#707072] py-2">
+          아직 신청한 클래스가 없어요
+        </p>
+
+        <!-- List -->
+        <div v-else class="space-y-0">
+          <div
+            v-for="cls in myEnrollments"
+            :key="cls.id"
+            class="flex gap-3 py-4 border-b border-[#cacacb] last:border-0"
+          >
+            <div class="bg-white w-14 h-14 flex-shrink-0">
+              <img :src="cls.thumbnail" :alt="cls.title" class="w-full h-full object-cover" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-[16px] font-[500] text-[#111111] truncate">{{ cls.title }}</p>
+              <p class="text-[14px] font-[500] text-[#707072] mt-0.5">{{ formatDate(cls.date) }} · {{ formatPrice(cls.price) }}</p>
+              <p class="text-[12px] font-[500] text-[#007d48] uppercase mt-0.5">신청 완료</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logout section -->
+      <section class="bg-[#111111] px-5 py-8">
         <button
           :disabled="isSigningOut"
-          class="w-full text-[rgba(235,235,245,0.6)] text-[17px] font-normal tracking-[-0.374px] py-[14px] rounded-[9999px] border border-[rgba(235,235,245,0.15)] transition-opacity active:opacity-50 disabled:opacity-40"
+          class="w-full text-[#9e9ea0] text-[16px] font-[500] h-12 rounded-[30px] border border-[#3a3a3a] transition-opacity active:opacity-50 disabled:opacity-40"
           @click="handleSignOut"
         >
           <span v-if="isSigningOut" class="flex items-center justify-center gap-2">

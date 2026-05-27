@@ -10,6 +10,7 @@ export interface ClassItem {
   thumbnail: string
   deadline: string
   description: string
+  creatorId: string | null
 }
 
 export const CATEGORIES = ['전체', '운동', '러닝', '수영', '스터디', '취미', '클래스'] as const
@@ -55,6 +56,7 @@ export function useClasses() {
       thumbnail: row.thumbnail as string,
       deadline: row.deadline as string,
       description: row.description as string,
+      creatorId: row.creator_id as string | null,
     }))
   })
 

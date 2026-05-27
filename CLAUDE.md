@@ -79,24 +79,27 @@ skill-for-lion-claude/
 
 **컴포넌트 자동 import**: `app/components/`의 컴포넌트는 import 없이 템플릿에서 바로 사용 가능. composables도 동일.
 
-## Design System (Apple — DESIGN.md 기반)
+## Design System (Nike — DESIGN.md 기반)
 
-현재 디자인 시스템은 `DESIGN.md`의 Apple 스펙을 따름. `/apply-design` 스킬로 `DESIGN.md` 교체 시 전체 재적용 가능.
+현재 디자인 시스템은 `DESIGN.md`의 Nike 스펙을 따름. `/apply-design` 스킬로 `DESIGN.md` 교체 시 전체 재적용 가능.
 
 | 토큰 | 값 | 용도 |
 |---|---|---|
-| Primary | `#0066cc` | 버튼, 링크, active 상태 — 유일한 accent |
-| Ink | `#1d1d1f` | 모든 헤드라인/본문 텍스트 |
-| Muted | `#7a7a7a` | 보조 정보, 레이블 |
-| On-dark | `#cccccc` | dark tile 위 보조 텍스트 |
-| Dark tile | `#272729` | Hero, CTA 섹션 배경 |
-| Canvas | `#ffffff` | 콘텐츠 섹션 배경 |
-| Parchment | `#f5f5f7` | 보조 섹션, page canvas |
-| Card radius | `rounded-[18px]` | 모든 카드 |
-| Button shape | `rounded-[9999px]` | 모든 버튼 (pill 전용) |
-| Shadow | 없음 | 카드에 그림자 사용 금지, hairline border만 |
+| Ink | `#111111` | 버튼, 헤드라인, active 상태 — 유일한 "color" |
+| Canvas | `#ffffff` | 페이지 배경, 카드 surface |
+| Soft Cloud | `#f5f5f5` | 이미지 배경, 검색 pill, secondary 섹션 |
+| Hairline | `#cacacb` | 1px 구분선 |
+| Mute | `#707072` | 보조 텍스트, 카테고리 |
+| Stone | `#9e9ea0` | 최하위 강조, on-dark 보조 |
+| Sale | `#d30005` | 에러/마감임박 — 유일한 red |
+| Success | `#007d48` | 신청완료, success 상태 |
+| Display font | Bebas Neue | 96px campaign hero, UPPERCASE |
+| Body font | Inter 400/500 | 모든 UI 텍스트 |
+| Card radius | `rounded-none` (0px) | 모든 카드, 컨테이너 |
+| Button shape | `rounded-[30px]` | 모든 pill CTA |
+| Shadow | 없음 | hairline inset만 sticky bar에 사용 |
 
-**섹션 리듬**: Dark tile → White → Parchment → Dark (색 전환이 구분선, border 없음)
+**섹션 리듬**: Ink hero → Canvas → Soft Cloud → Ink CTA band
 
 ## Component Map
 
@@ -141,9 +144,7 @@ skill-for-lion-claude/
 
 ## 미구현
 
-- 신청하기 API 연결 (현재 alert 처리)
 - 마감 임박 기준일이 하드코딩 — API 연결 시 서버 시간 기준으로 교체 필요
-- 내 활동 내역 (등록/신청 클래스) — 플레이스홀더만 구현
 
 ---
 
@@ -154,8 +155,11 @@ skill-for-lion-claude/
 | 테이블 | 설명 |
 |---|---|
 | `classes` | 클래스 목록 — 12개 초기 데이터 포함 |
+| `enrollments` | 클래스 신청 내역 — class_id + user_id 복합 unique |
 
-**`classes` 컬럼**: `id`, `title`, `category`, `price`, `location`, `date`, `max_participants`, `current_participants`, `thumbnail`, `deadline`, `description`, `created_at`
+**`classes` 컬럼**: `id`, `title`, `category`, `price`, `location`, `date`, `max_participants`, `current_participants`, `thumbnail`, `deadline`, `description`, `created_at`, `creator_id`
+
+**`enrollments` 컬럼**: `id`, `class_id`, `user_id`, `created_at`
 
 DB의 snake_case 컬럼 → `ClassItem` camelCase 변환은 `useClasses.ts` 내부에서 처리.
 
@@ -214,6 +218,6 @@ NUXT_PUBLIC_SUPABASE_ANON_KEY=...
 - 검색/필터는 클라이언트 사이드 필터링 (DB 쿼리 아님) — 데이터 많아지면 서버 사이드 쿼리로 전환 필요.
 - 마감 임박 판단(`isDeadlineSoon`)은 브라우저 로컬 시간 기준 — 서비스 운영 시 서버 시간 기준으로 교체 필요.
 - `@supabase/supabase-js` 직접 사용 (`@nuxtjs/supabase` 모듈 미사용).
-- Update/Delete 미구현 — 등록한 클래스 수정/삭제 기능 필요 시 추가 작업 필요.
-- 내정보의 활동 내역은 플레이스홀더 — 실제 데이터 연결 시 `user.id`로 classes 테이블 필터링.
+- 등록한 클래스 수정/삭제 미구현.
 - Supabase Email 인증 활성화 필요: Supabase 대시보드 > Authentication > Providers > Email.
+- enrollments 신청 취소 기능 미구현 — DELETE RLS 정책은 이미 추가되어 있음.
