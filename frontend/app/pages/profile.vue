@@ -234,6 +234,5 @@ const userInitial = computed(() => {
       </section>
     </template>
 
-    <BottomNavigation active-menu="profile" />
   </div>
 </template>

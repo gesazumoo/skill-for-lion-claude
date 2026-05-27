@@ -381,7 +381,6 @@ async function handleSubmit() {
       </button>
     </section>
 
-    <BottomNavigation active-menu="register" />
 
   </div>
 </template>

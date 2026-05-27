@@ -156,7 +156,6 @@ function handleSearchSubmit() {
       @close="selectedClass = null"
     />
 
-    <BottomNavigation active-menu="home" />
 
   </div>
 </template>

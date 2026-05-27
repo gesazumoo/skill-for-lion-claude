@@ -119,8 +119,6 @@ function clearSearch() {
       </button>
     </div>
 
-    <BottomNavigation active-menu="search" />
-
     <ClassDetail
       v-if="selectedClass"
       :class-item="selectedClass"
