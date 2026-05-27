@@ -111,14 +111,19 @@ async function handleSubmit() {
   <div class="min-h-screen bg-[#f5f5f7] max-w-lg mx-auto pb-[72px]">
 
     <!-- 성공 토스트 -->
-    <Transition name="toast">
-      <div
-        v-if="showSuccess"
-        class="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-[#1d1d1f] text-white text-[15px] font-medium px-6 py-3 rounded-[9999px] shadow-lg"
-      >
-        클래스가 등록되었어요!
-      </div>
-    </Transition>
+    <div class="fixed bottom-24 inset-x-0 flex justify-center pointer-events-none z-50">
+      <Transition name="toast">
+        <div
+          v-if="showSuccess"
+          class="flex items-center gap-2 bg-[#1d1d1f] text-white text-[15px] font-medium px-5 py-3 rounded-[9999px] shadow-xl"
+        >
+          <svg class="w-4 h-4 text-[#30d158] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+          </svg>
+          클래스가 등록되었어요!
+        </div>
+      </Transition>
+    </div>
 
     <!-- ① Dark Hero Header -->
     <section class="bg-[#272729] px-5 pt-16 pb-10">
@@ -403,13 +408,15 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-.toast-enter-active,
+.toast-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
 .toast-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .toast-enter-from,
 .toast-leave-to {
   opacity: 0;
-  transform: translate(-50%, -12px);
+  transform: translateY(8px);
 }
 </style>
