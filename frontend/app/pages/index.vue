@@ -2,6 +2,7 @@
 import { CATEGORIES, useClasses } from '~/composables/useClasses'
 
 const { allClasses, deadlineSoonClasses } = useClasses()
+const router = useRouter()
 
 const searchQuery = ref('')
 const activeCategory = ref('전체')
@@ -17,6 +18,11 @@ const filteredClasses = computed(() =>
     return matchSearch && matchCategory
   })
 )
+
+function handleSearchSubmit() {
+  const q = searchQuery.value.trim()
+  router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+}
 </script>
 
 <template>
@@ -54,6 +60,7 @@ const filteredClasses = computed(() =>
           type="text"
           placeholder="클래스, 카테고리, 지역으로 검색"
           class="flex-1 text-[17px] font-normal text-[#1d1d1f] tracking-[-0.374px] placeholder-[#7a7a7a] outline-none bg-transparent"
+          @keydown.enter="handleSearchSubmit"
         />
       </div>
 

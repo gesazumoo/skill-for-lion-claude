@@ -1,4 +1,4 @@
-이 파일의 내용은 항상 300줄 이하로 유지.
+이 파일의 내용은 항상 300줄 이하로 반드시 필요한 내용만 유지.
 
 # 작업 전 참고 문서
 
@@ -20,41 +20,30 @@
 ## 구현된 화면
 
 - **홈 화면** (`frontend/app/pages/index.vue`)
-  - Hero 영역 (검색창, 카테고리 필터)
-  - 추천 클래스 리스트
-  - 마감 임박 클래스 가로 스크롤
-  - 클래스 등록 유도 영역
-  - 하단 네비게이션 (홈 active)
+  - Hero 영역 (검색창 Enter → 검색 화면 이동, 카테고리 필터)
+  - 추천 클래스 리스트 / 마감 임박 가로 스크롤 / 등록 유도 CTA
+
+- **검색 화면** (`frontend/app/pages/search.vue`)
+  - URL `?q=` 쿼리로 초기 검색어 수신
+  - 검색바 + 카테고리 필터 칩 (상단 sticky)
+  - 세로형 클래스 카드 리스트
+  - 카드 클릭 → 클래스 상세보기 팝업
 
 ## 구현된 UI 컴포넌트
 
-- `ClassCard.vue` — 가로형 클래스 카드 (variant: list / scroll)
-- `BottomNavigation.vue` — 하단 네비게이션 (홈/검색/등록/내정보)
+- `ClassCard.vue` — 가로형 클래스 카드 (variant: list/scroll)
+- `ClassCardVertical.vue` — 세로형 클래스 카드 (select emit)
+- `ClassDetail.vue` — 상세보기 팝업 (bottom sheet, Teleport)
+- `BottomNavigation.vue` — 하단 네비게이션 (라우터 이동 포함)
 
-## 더미 데이터
+## 더미 데이터 / 디자인 시스템
 
-- `frontend/app/composables/useClasses.ts`
-  - 12개 클래스 (수영, 러닝, 운동, 스터디, 취미, 클래스 카테고리)
-  - 마감 임박 클래스 3개 포함 (deadline 3일 이내)
-  - `isDeadlineSoon`, `formatPrice`, `formatDate` 유틸 함수 포함
-
-## 디자인 시스템
-
-- **기반**: Apple 디자인 시스템 (`DESIGN.md` 기준)
-- **TailwindCSS v4** (`@tailwindcss/vite` 플러그인)
-- **폰트**: `system-ui, -apple-system` (SF Pro) + Inter fallback (Google Fonts)
-- **Primary**: `#0066cc` (Action Blue) — 버튼, 링크, 활성 상태 전용
-- **섹션 리듬**: `#272729` Dark tile ↔ `#ffffff` White ↔ `#f5f5f7` Parchment (색 전환이 구분선)
-- **텍스트**: `#1d1d1f` ink / `#7a7a7a` muted / `#cccccc` on-dark
-- **카드**: `rounded-[18px]` + `border border-[#e0e0e0]` + **no shadow**
-- **버튼**: `rounded-[9999px]` pill 전용 + `active:scale-95`
-- **하단 내비**: `bg-black`, active=`#0066cc`
-- **타이포**: 34px/600/-0.374px (display), 17px/400/-0.374px (body), 14px/400/-0.224px (caption)
+- 더미: `frontend/app/composables/useClasses.ts` (12개 클래스, ClassItem 타입, CATEGORIES 상수)
+- 디자인: Apple 시스템 — Primary `#0066cc`, Dark tile `#272729`, Card `rounded-[18px] border border-[#e0e0e0]` no shadow, Button `rounded-[9999px]` pill
 
 ## 다음 작업자 참고사항
 
-- `ClassCard.vue`는 홈 외 다른 화면에서도 재사용 가능 (variant prop으로 list/scroll 전환)
-- `useClasses.ts`의 `ClassItem` 타입과 더미 데이터를 다음 화면에서 그대로 재사용
-- `CATEGORIES` 상수도 export되어 있음 (카테고리 목록 공통 사용)
-- `BottomNavigation.vue`는 `active-menu` prop으로 active 메뉴 지정
-- TailwindCSS 설정: `frontend/app/assets/css/main.css` (scrollbar-hide 유틸 포함)
+- 검색 화면 → 상세보기 팝업 경로: `search.vue`의 `selectedClass` ref → `ClassDetail.vue`
+- 홈 검색창 Enter → `/search?q=<query>` 이동, 하단 네비 검색 버튼 → `/search`
+- 등록/내정보 페이지 미구현 (router.push만 연결됨)
+- `ClassDetail.vue`의 신청하기는 현재 alert 처리 (API 연결 시 교체 필요)
