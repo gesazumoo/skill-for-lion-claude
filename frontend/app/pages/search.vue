@@ -4,19 +4,18 @@ import type { ClassItem } from '~/composables/useClasses'
 
 const route = useRoute()
 const router = useRouter()
-const { allClasses } = useClasses()
+const { allClasses, pending } = useClasses()
 
 const searchQuery = ref(route.query.q?.toString() ?? '')
 const activeCategory = ref('전체')
 const selectedClass = ref<ClassItem | null>(null)
 
-// URL 쿼리 변경 시 검색어 동기화
 watch(() => route.query.q, (newQ) => {
   searchQuery.value = newQ?.toString() ?? ''
 })
 
 const filteredClasses = computed(() =>
-  allClasses.filter(c => {
+  allClasses.value.filter(c => {
     const matchSearch =
       !searchQuery.value ||
       c.title.includes(searchQuery.value) ||
@@ -44,7 +43,6 @@ function clearSearch() {
     <!-- 상단 고정: 검색 + 카테고리 -->
     <div class="sticky top-0 z-40 bg-[#f5f5f7]/90 backdrop-blur-md">
 
-      <!-- 검색바 -->
       <div class="px-5 pt-14 pb-3">
         <div class="flex items-center gap-3 bg-white rounded-[9999px] px-5 border border-[rgba(0,0,0,0.08)] h-11">
           <svg class="w-4 h-4 text-[#7a7a7a] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -69,7 +67,6 @@ function clearSearch() {
         </div>
       </div>
 
-      <!-- 카테고리 필터 칩 -->
       <div class="flex gap-2 px-5 pb-3 overflow-x-auto scrollbar-hide">
         <button
           v-for="cat in CATEGORIES"
@@ -84,18 +81,28 @@ function clearSearch() {
         </button>
       </div>
 
-      <!-- 구분선 -->
       <div class="h-px bg-[#e0e0e0]" />
     </div>
 
     <!-- 결과 헤더 -->
     <div class="px-5 py-4 flex items-baseline gap-2">
       <span class="text-[17px] font-semibold text-[#1d1d1f] tracking-[-0.374px]">클래스</span>
-      <span class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px]">{{ filteredClasses.length }}개</span>
+      <span class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px]">
+        {{ pending ? '...' : `${filteredClasses.length}개` }}
+      </span>
+    </div>
+
+    <!-- 로딩 스켈레톤 -->
+    <div v-if="pending" class="px-5 space-y-4 pb-8">
+      <div
+        v-for="i in 5"
+        :key="i"
+        class="h-28 bg-white rounded-[18px] animate-pulse"
+      />
     </div>
 
     <!-- 세로형 클래스 카드 리스트 -->
-    <div v-if="filteredClasses.length > 0" class="px-5 space-y-4 pb-8">
+    <div v-else-if="filteredClasses.length > 0" class="px-5 space-y-4 pb-8">
       <ClassCardVertical
         v-for="c in filteredClasses"
         :key="c.id"
@@ -115,16 +122,14 @@ function clearSearch() {
       </p>
       <button
         class="mt-6 text-[#0066cc] text-[17px] font-normal tracking-[-0.374px] active:opacity-60"
-        @click="clearSearch; activeCategory = '전체'"
+        @click="clearSearch(); activeCategory = '전체'"
       >
         전체 클래스 보기
       </button>
     </div>
 
-    <!-- 하단 네비게이션 -->
     <BottomNavigation active-menu="search" />
 
-    <!-- 클래스 상세보기 팝업 -->
     <ClassDetail
       v-if="selectedClass"
       :class-item="selectedClass"

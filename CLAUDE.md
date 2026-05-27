@@ -142,3 +142,45 @@ skill-for-lion-claude/
 - 내정보 화면 (`/profile`)
 - 신청하기 API 연결 (현재 alert 처리)
 - 마감 임박 기준일이 하드코딩 — API 연결 시 서버 시간 기준으로 교체 필요
+
+---
+
+# Supabase 연동 현황
+
+## 사용 테이블
+
+| 테이블 | 설명 |
+|---|---|
+| `classes` | 클래스 목록 — 12개 초기 데이터 포함 |
+
+**`classes` 컬럼**: `id`, `title`, `category`, `price`, `location`, `date`, `max_participants`, `current_participants`, `thumbnail`, `deadline`, `description`, `created_at`
+
+DB의 snake_case 컬럼 → `ClassItem` camelCase 변환은 `useClasses.ts` 내부에서 처리.
+
+## 연결된 화면
+
+- 홈 (`/`) — 추천 클래스 목록, 마감 임박 클래스 모두 Supabase `classes` 테이블 조회
+- 검색 (`/search`) — 검색/필터/상세보기 모두 Supabase 데이터 기반
+
+## 데이터 흐름
+
+```
+Supabase classes 테이블
+  → app/plugins/supabase.ts (클라이언트 초기화, $supabase 주입)
+  → app/composables/useClasses.ts (useAsyncData로 fetch, camelCase 매핑)
+  → pages/index.vue, pages/search.vue
+```
+
+## 환경 변수 (frontend/.env)
+
+```
+NUXT_PUBLIC_SUPABASE_URL=https://totwcjbvukmnfehhbfca.supabase.co
+NUXT_PUBLIC_SUPABASE_ANON_KEY=...
+```
+
+## 다음 작업자 참고
+
+- 현재 조회(Read)만 구현. Create/Update/Delete 미구현.
+- 검색/필터는 클라이언트 사이드 필터링 (DB 쿼리 아님) — 데이터 많아지면 서버 사이드 쿼리로 전환 필요.
+- 마감 임박 판단(`isDeadlineSoon`)은 브라우저 로컬 시간 기준 — 서비스 운영 시 서버 시간 기준으로 교체 필요.
+- `@supabase/supabase-js` 직접 사용 (`@nuxtjs/supabase` 모듈 미사용) — auth 필요 시 모듈 전환 검토.

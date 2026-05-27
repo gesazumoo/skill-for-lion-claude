@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { CATEGORIES, useClasses } from '~/composables/useClasses'
 
-const { allClasses, deadlineSoonClasses } = useClasses()
+const { allClasses, deadlineSoonClasses, pending } = useClasses()
 const router = useRouter()
 
 const searchQuery = ref('')
 const activeCategory = ref('전체')
 
 const filteredClasses = computed(() =>
-  allClasses.filter(c => {
+  allClasses.value.filter(c => {
     const matchSearch =
       !searchQuery.value ||
       c.title.includes(searchQuery.value) ||
@@ -26,31 +26,23 @@ function handleSearchSubmit() {
 </script>
 
 <template>
-  <!--
-    Apple 디자인 리듬: Dark tile → White → Parchment → Dark CTA → Black nav
-    color change = section divider, no borders between tiles
-  -->
   <div class="min-h-screen max-w-lg mx-auto pb-[72px]">
 
     <!-- ① Dark Hero Tile — #272729 -->
     <section class="bg-[#272729] px-5 pt-16 pb-12">
 
-      <!-- 서비스 레이블 — Action Blue, caption-strong -->
       <p class="text-[14px] font-semibold text-[#0066cc] tracking-[-0.224px] mb-3">
         원데이 클래스
       </p>
 
-      <!-- Hero H1 — display-md (34px / 600 / -0.374px) -->
       <h1 class="text-[34px] font-semibold text-white leading-[1.07] tracking-[-0.374px] mb-3">
         오늘 바로 참여 가능한<br />원데이 클래스
       </h1>
 
-      <!-- 서브카피 — body (17px / 400 / -0.374px), muted on dark -->
       <p class="text-[17px] font-normal text-[#cccccc] leading-[1.47] tracking-[-0.374px] mb-7">
         운동, 러닝, 수영, 스터디 등<br />원하는 클래스를 찾아보세요
       </p>
 
-      <!-- 검색창 — Apple search-input: pill, white, 44px height, hairline border -->
       <div class="flex items-center gap-3 bg-white rounded-[9999px] px-5 border border-[rgba(0,0,0,0.08)] h-11">
         <svg class="w-4 h-4 text-[#7a7a7a] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -64,7 +56,6 @@ function handleSearchSubmit() {
         />
       </div>
 
-      <!-- 카테고리 칩 — Apple configurator-option-chip 스타일, dark surface 적용 -->
       <div class="flex gap-2 mt-4 overflow-x-auto scrollbar-hide pb-1">
         <button
           v-for="cat in CATEGORIES"
@@ -83,18 +74,26 @@ function handleSearchSubmit() {
     <!-- ② White Recommended Section — #ffffff -->
     <section class="bg-white px-5 py-12">
 
-      <!-- 섹션 헤더 — tagline (21px / 600) -->
       <div class="flex items-baseline justify-between mb-6">
         <h2 class="text-[21px] font-semibold text-[#1d1d1f] tracking-[-0.374px]">
           추천 클래스
         </h2>
         <span class="text-[14px] font-normal text-[#7a7a7a] tracking-[-0.224px]">
-          {{ filteredClasses.length }}개
+          {{ pending ? '...' : `${filteredClasses.length}개` }}
         </span>
       </div>
 
+      <!-- 로딩 스켈레톤 -->
+      <div v-if="pending" class="space-y-3">
+        <div
+          v-for="i in 4"
+          :key="i"
+          class="h-24 bg-[#f5f5f7] rounded-[18px] animate-pulse"
+        />
+      </div>
+
       <!-- 클래스 리스트 -->
-      <div v-if="filteredClasses.length > 0" class="space-y-3">
+      <div v-else-if="filteredClasses.length > 0" class="space-y-3">
         <ClassCard
           v-for="c in filteredClasses"
           :key="c.id"
@@ -114,7 +113,7 @@ function handleSearchSubmit() {
     </section>
 
     <!-- ③ Parchment Deadline Section — #f5f5f7 -->
-    <section v-if="deadlineSoonClasses.length > 0" class="bg-[#f5f5f7] py-12">
+    <section v-if="pending || deadlineSoonClasses.length > 0" class="bg-[#f5f5f7] py-12">
 
       <div class="px-5 mb-6">
         <h2 class="text-[21px] font-semibold text-[#1d1d1f] tracking-[-0.374px]">
@@ -125,7 +124,16 @@ function handleSearchSubmit() {
         </p>
       </div>
 
-      <div class="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
+      <!-- 로딩 스켈레톤 -->
+      <div v-if="pending" class="flex gap-3 px-5">
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="flex-shrink-0 w-40 h-48 bg-white rounded-[18px] animate-pulse"
+        />
+      </div>
+
+      <div v-else class="flex gap-3 overflow-x-auto scrollbar-hide px-5 pb-1">
         <ClassCard
           v-for="c in deadlineSoonClasses"
           :key="c.id"
@@ -135,25 +143,21 @@ function handleSearchSubmit() {
       </div>
     </section>
 
-    <!-- ④ Dark CTA Tile — #272729, Apple product-tile-dark 스타일 -->
+    <!-- ④ Dark CTA Tile -->
     <section class="bg-[#272729] px-5 py-16 text-center">
 
-      <!-- 섹션 레이블 — Action Blue, caption-strong -->
       <p class="text-[14px] font-semibold text-[#0066cc] tracking-[-0.224px] mb-4">
         클래스 호스트
       </p>
 
-      <!-- 헤드라인 — display-md (34px / 600), white -->
       <h2 class="text-[34px] font-semibold text-white leading-[1.07] tracking-[-0.374px]">
         나만의 클래스를<br />직접 모집해보세요
       </h2>
 
-      <!-- 서브카피 — lead (28px / 400), muted -->
       <p class="text-[17px] font-normal text-[#cccccc] leading-[1.47] tracking-[-0.374px] mt-4 mx-auto max-w-xs">
         지금 바로 클래스를 등록하고<br />함께할 사람들을 모집해보세요
       </p>
 
-      <!-- CTA 버튼 — button-primary: pill, Action Blue, 17px/300, 11px×22px -->
       <button
         class="mt-8 bg-[#0066cc] text-white text-[17px] font-light tracking-[-0.374px] px-[22px] py-[11px] rounded-[9999px] active:scale-95 transition-transform duration-100"
       >
@@ -161,7 +165,6 @@ function handleSearchSubmit() {
       </button>
     </section>
 
-    <!-- 하단 네비게이션 — Apple global-nav 스타일 (pure black) -->
     <BottomNavigation active-menu="home" />
 
   </div>
