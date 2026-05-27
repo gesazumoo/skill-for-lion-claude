@@ -11,132 +11,218 @@ const filtered = computed(() =>
 </script>
 
 <template>
-  <div class="max-w-md mx-auto bg-gray-50 min-h-screen">
+  <div class="max-w-md mx-auto min-h-screen" style="background: #ffffff;">
 
-    <!-- Header -->
-    <header class="bg-white px-5 pt-12 pb-5 sticky top-0 z-10 border-b border-gray-100">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-xl font-extrabold tracking-tight text-gray-900">클래스데이</span>
-        <button class="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100">
-          <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-        </button>
-      </div>
+    <!-- Header — white, hairline bottom -->
+    <header
+      class="sticky top-0 z-20 flex items-center justify-between px-6"
+      style="background: #ffffff; height: 56px; border-bottom: 1px solid #d8d8d8;"
+    >
+      <span style="font-size: 15px; font-weight: 600; color: #080808; letter-spacing: -0.1px;">클래스데이</span>
+      <button
+        class="flex items-center justify-center"
+        style="width: 32px; height: 32px; border-radius: 9999px; background: #f4f4f4;"
+      >
+        <svg class="w-4 h-4" style="color: #080808;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+      </button>
     </header>
 
-    <main class="px-5 pb-24">
+    <!-- Hero Band — WHITE canvas, large headline -->
+    <section class="px-6 pt-12 pb-10" style="background: #ffffff;">
+      <!-- Eyebrow -->
+      <p style="font-size: 15px; font-weight: 500; letter-spacing: 1.5px; text-transform: uppercase; color: #898989; margin-bottom: 16px;">
+        지금 바로 참여 가능
+      </p>
+      <!-- H1: display-xxl scaled for mobile -->
+      <h1 style="font-size: 40px; font-weight: 600; line-height: 1.05; letter-spacing: -0.5px; color: #080808; margin-bottom: 16px;">
+        오늘 바로<br>참여 가능한<br>원데이 클래스
+      </h1>
+      <!-- Body -->
+      <p style="font-size: 16px; font-weight: 400; line-height: 1.6; letter-spacing: -0.16px; color: #363636; margin-bottom: 28px;">
+        운동, 취미, 스터디까지 — 오늘 하루를 특별하게 만들어보세요.
+      </p>
 
-      <!-- Hero -->
-      <section class="pt-7 pb-6">
-        <p class="text-sm text-emerald-500 font-semibold mb-2">지금 바로 참여 가능</p>
-        <h1 class="text-2xl font-extrabold text-gray-900 leading-tight mb-1">
-          오늘 바로 참여 가능한<br>원데이 클래스
-        </h1>
-        <p class="text-sm text-gray-400 mb-5">운동, 취미, 스터디까지 — 오늘 하루를 특별하게</p>
-
-        <!-- Search -->
-        <div class="relative mb-5">
-          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <!-- Search bar — 4px radius, hairline border -->
+      <div class="flex" style="gap: 8px;">
+        <div class="relative flex-1">
+          <svg
+            class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+            style="color: #898989;"
+            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
+          >
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
           </svg>
           <input
             type="text"
             placeholder="클래스 검색"
-            class="w-full bg-white border border-gray-200 rounded-2xl pl-10 pr-4 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-400 shadow-sm"
+            style="
+              width: 100%;
+              height: 44px;
+              border-radius: 4px;
+              border: 1px solid #d8d8d8;
+              background: #ffffff;
+              font-size: 16px;
+              font-weight: 400;
+              letter-spacing: -0.16px;
+              color: #080808;
+              padding: 0 12px 0 36px;
+              outline: none;
+              font-family: inherit;
+            "
           />
         </div>
+        <button
+          style="
+            height: 44px;
+            padding: 0 20px;
+            border-radius: 4px;
+            background: #080808;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.16px;
+            font-family: inherit;
+            white-space: nowrap;
+          "
+        >
+          검색
+        </button>
+      </div>
+    </section>
 
-        <!-- Category chips -->
-        <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-          <button
-            v-for="cat in categories"
-            :key="cat"
-            @click="selectedCategory = cat"
-            class="shrink-0 text-sm font-semibold px-4 py-2 rounded-full transition-colors"
-            :class="selectedCategory === cat
-              ? 'bg-gray-900 text-white'
-              : 'bg-white text-gray-500 border border-gray-200 hover:border-gray-400'"
-          >
-            {{ cat }}
-          </button>
-        </div>
-      </section>
+    <!-- Category Filter Chips — 4px radius, chromatic-aware -->
+    <section class="px-6 pb-5" style="background: #ffffff; border-bottom: 1px solid #d8d8d8;">
+      <div class="flex gap-2 overflow-x-auto scrollbar-hide">
+        <button
+          v-for="cat in categories"
+          :key="cat"
+          @click="selectedCategory = cat"
+          class="shrink-0"
+          style="
+            font-size: 14px;
+            font-weight: 500;
+            padding: 7px 14px;
+            border-radius: 4px;
+            border: 1px solid;
+            white-space: nowrap;
+            font-family: inherit;
+            transition: all 0.1s;
+          "
+          :style="selectedCategory === cat
+            ? 'background: #080808; color: #ffffff; border-color: #080808;'
+            : 'background: #ffffff; color: #363636; border-color: #d8d8d8;'"
+        >
+          {{ cat }}
+        </button>
+      </div>
+    </section>
+
+    <main class="pb-28" style="background: #ffffff;">
 
       <!-- 마감 임박 -->
-      <section class="mb-8">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-base font-bold text-gray-900 flex items-center gap-1.5">
-            <span class="inline-block w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            오늘 마감 임박
-          </h2>
-          <button class="text-xs text-gray-400 hover:text-gray-600">더보기</button>
+      <section class="px-6 pt-8 pb-8" style="border-bottom: 1px solid #d8d8d8;">
+        <div class="flex items-baseline justify-between mb-6">
+          <div>
+            <p style="font-size: 12px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase; color: #ee1d36; margin-bottom: 4px;">
+              ● 마감 임박
+            </p>
+            <h2 style="font-size: 24px; font-weight: 500; color: #080808; line-height: 1.3;">오늘 마감 클래스</h2>
+          </div>
+          <button style="font-size: 14px; font-weight: 500; color: #5a5a5a; letter-spacing: 0;">
+            더보기 →
+          </button>
         </div>
-        <div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-5 px-5">
+        <div class="flex gap-3 overflow-x-auto scrollbar-hide -mx-6 px-6">
           <DeadlineCard v-for="item in deadlineClasses" :key="item.id" :item="item" />
         </div>
       </section>
 
       <!-- 인기 클래스 -->
-      <section>
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="text-base font-bold text-gray-900">인기 클래스</h2>
-          <button class="text-xs text-gray-400 hover:text-gray-600">더보기</button>
+      <section class="px-6 pt-8">
+        <div class="flex items-baseline justify-between mb-6">
+          <div>
+            <p style="font-size: 12px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase; color: #898989; margin-bottom: 4px;">
+              Popular
+            </p>
+            <h2 style="font-size: 24px; font-weight: 500; color: #080808; line-height: 1.3;">인기 클래스</h2>
+          </div>
+          <button style="font-size: 14px; font-weight: 500; color: #5a5a5a;">
+            더보기 →
+          </button>
         </div>
 
-        <div v-if="filtered.length === 0" class="py-16 text-center text-gray-400 text-sm">
+        <div v-if="filtered.length === 0" class="py-16 text-center" style="font-size: 14px; color: #898989;">
           해당 카테고리 클래스가 없어요
         </div>
 
-        <div v-else class="grid grid-cols-1 gap-4">
+        <div v-else class="flex flex-col" style="gap: 16px;">
           <ClassCard v-for="item in filtered" :key="item.id" :item="item" />
         </div>
       </section>
 
-      <!-- CTA -->
-      <section class="mt-10 bg-gradient-to-br from-gray-900 to-gray-700 rounded-3xl p-6 text-white">
-        <p class="text-xs font-semibold text-emerald-400 mb-2">HOST</p>
-        <h3 class="text-lg font-extrabold leading-snug mb-2">나만의 클래스를<br>직접 모집해보세요</h3>
-        <p class="text-sm text-gray-400 mb-5">누구나 호스트가 될 수 있어요.<br>지금 바로 클래스를 개설해보세요.</p>
-        <button class="bg-white text-gray-900 text-sm font-bold px-5 py-3 rounded-xl hover:bg-gray-100 transition-colors">
+      <!-- CTA Band — near-black hero-band-dark -->
+      <section class="mt-10 mx-6 mb-2 px-8 py-10" style="background: #080808; border-radius: 8px;">
+        <p style="font-size: 12px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase; color: #898989; margin-bottom: 12px;">
+          Host
+        </p>
+        <h3 style="font-size: 32px; font-weight: 500; line-height: 1.15; letter-spacing: -0.3px; color: #ffffff; margin-bottom: 12px;">
+          나만의 클래스를<br>직접 모집하세요
+        </h3>
+        <p style="font-size: 16px; font-weight: 400; line-height: 1.6; letter-spacing: -0.16px; color: #898989; margin-bottom: 24px;">
+          누구나 호스트가 될 수 있어요.<br>클래스를 개설하고 참가자를 모집해보세요.
+        </p>
+        <button
+          style="
+            background: #ffffff;
+            color: #080808;
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.16px;
+            padding: 12px 20px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            font-family: inherit;
+          "
+        >
           클래스 등록하기
         </button>
       </section>
 
     </main>
 
-    <!-- Bottom Nav -->
-    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 flex items-center justify-around px-6 py-3 z-10">
-      <button class="flex flex-col items-center gap-0.5 text-gray-900">
-        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+    <!-- Bottom Nav — white, hairline top -->
+    <nav
+      class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md flex items-center justify-around px-6 z-10"
+      style="background: #ffffff; border-top: 1px solid #d8d8d8; height: 56px;"
+    >
+      <button class="flex flex-col items-center gap-1">
+        <svg class="w-5 h-5" style="color: #080808;" fill="currentColor" viewBox="0 0 24 24">
           <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
         </svg>
-        <span class="text-[10px] font-semibold">홈</span>
+        <span style="font-size: 10px; font-weight: 500; color: #080808; letter-spacing: 0.3px;">홈</span>
       </button>
-      <button class="flex flex-col items-center gap-0.5 text-gray-400">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <button class="flex flex-col items-center gap-1">
+        <svg class="w-5 h-5" style="color: #ababab;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
         </svg>
-        <span class="text-[10px] font-semibold">탐색</span>
+        <span style="font-size: 10px; font-weight: 500; color: #ababab; letter-spacing: 0.3px;">탐색</span>
       </button>
-      <button class="flex flex-col items-center gap-0.5 text-gray-400">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <button class="flex flex-col items-center gap-1">
+        <svg class="w-5 h-5" style="color: #ababab;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
-        <span class="text-[10px] font-semibold">등록</span>
+        <span style="font-size: 10px; font-weight: 500; color: #ababab; letter-spacing: 0.3px;">등록</span>
       </button>
-      <button class="flex flex-col items-center gap-0.5 text-gray-400">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <button class="flex flex-col items-center gap-1">
+        <svg class="w-5 h-5" style="color: #ababab;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
-        <span class="text-[10px] font-semibold">마이</span>
+        <span style="font-size: 10px; font-weight: 500; color: #ababab; letter-spacing: 0.3px;">마이</span>
       </button>
     </nav>
 
   </div>
 </template>
-
-<style>
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-</style>

@@ -3,37 +3,83 @@ import type { ClassItem } from '~/data/classes'
 
 defineProps<{ item: ClassItem }>()
 
-const categoryColors: Record<string, string> = {
-  러닝: 'bg-orange-100 text-orange-600',
-  수영: 'bg-blue-100 text-blue-600',
-  운동: 'bg-green-100 text-green-600',
-  스터디: 'bg-purple-100 text-purple-600',
-  취미: 'bg-pink-100 text-pink-600',
-  클래스: 'bg-yellow-100 text-yellow-600',
+const accentMap: Record<string, { bg: string; text: string }> = {
+  러닝:  { bg: '#ff6b00', text: '#ffffff' },
+  수영:  { bg: '#3b89ff', text: '#ffffff' },
+  운동:  { bg: '#00d722', text: '#080808' },
+  스터디: { bg: '#7a3dff', text: '#ffffff' },
+  취미:  { bg: '#ed52cb', text: '#ffffff' },
+  클래스: { bg: '#ffae13', text: '#080808' },
 }
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 w-60 shrink-0 flex flex-col">
-    <div class="relative">
-      <img :src="item.thumbnail" :alt="item.title" class="w-full h-36 object-cover" />
-      <span class="absolute top-2 right-2 text-xs font-bold px-2 py-1 rounded-full bg-red-500 text-white">
+  <div
+    class="shadow-wf bg-white overflow-hidden flex flex-col shrink-0"
+    style="width: 216px; border-radius: 8px; border: 1px solid #d8d8d8;"
+  >
+    <!-- Photo -->
+    <div class="relative" style="background: #f4f4f4;">
+      <img :src="item.thumbnail" :alt="item.title" class="w-full object-cover" style="height: 124px; border-radius: 8px 8px 0 0;" />
+
+      <!-- Deadline badge — error red, 4px radius, top-right -->
+      <span
+        class="absolute top-2 right-2"
+        style="
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.3px;
+          padding: 3px 8px;
+          border-radius: 4px;
+          background: #ee1d36;
+          color: #ffffff;
+        "
+      >
         {{ item.deadline }}
       </span>
+
+      <!-- Category badge — chromatic accent, bottom-left -->
       <span
-        class="absolute top-2 left-2 text-xs font-semibold px-2 py-1 rounded-full"
-        :class="categoryColors[item.category] ?? 'bg-gray-100 text-gray-600'"
+        class="absolute bottom-2 left-2"
+        :style="`
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.3px;
+          padding: 3px 8px;
+          border-radius: 4px;
+          background: ${accentMap[item.category]?.bg ?? '#d8d8d8'};
+          color: ${accentMap[item.category]?.text ?? '#080808'};
+        `"
       >
         {{ item.category }}
       </span>
     </div>
-    <div class="p-3 flex flex-col flex-1">
-      <h3 class="font-bold text-gray-900 text-sm leading-snug mb-2">{{ item.title }}</h3>
-      <p class="text-xs text-gray-400 mb-1">{{ item.date }}</p>
-      <p class="text-xs text-gray-400 truncate mb-3">{{ item.location }}</p>
-      <div class="mt-auto flex items-center justify-between">
-        <span class="text-sm font-bold text-gray-900">{{ item.price.toLocaleString() }}원</span>
-        <button class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-900 text-white hover:bg-gray-700 transition-colors">
+
+    <!-- Meta -->
+    <div class="flex flex-col flex-1" style="padding: 14px;">
+      <h3 class="mb-1" style="font-size: 15px; font-weight: 600; line-height: 1.3; letter-spacing: -0.15px; color: #080808;">
+        {{ item.title }}
+      </h3>
+      <p class="mb-0.5" style="font-size: 12px; font-weight: 400; color: #5a5a5a;">{{ item.date }}</p>
+      <p class="truncate mb-4" style="font-size: 12px; font-weight: 400; color: #5a5a5a;">{{ item.location }}</p>
+
+      <div class="mt-auto flex items-center justify-between" style="padding-top: 12px; border-top: 1px solid #d8d8d8;">
+        <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.16px; color: #080808;">
+          {{ item.price.toLocaleString() }}원
+        </span>
+        <button
+          style="
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 14px;
+            border-radius: 4px;
+            background: #080808;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            font-family: inherit;
+          "
+        >
           신청
         </button>
       </div>
