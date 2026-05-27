@@ -136,12 +136,14 @@ skill-for-lion-claude/
 - **홈** (`pages/index.vue`) — Hero(검색+카테고리), 추천 리스트, 마감임박 스크롤, 등록 CTA
 - **검색** (`pages/search.vue`) — 검색바+필터(sticky), 세로형 카드 리스트, 상세보기 팝업
 - **등록** (`pages/register.vue`) — 클래스 등록 폼, Supabase INSERT, 이미지 업로드
+- **로그인/회원가입** (`pages/login.vue`) — 이메일/비밀번호 인증, 탭 전환 UI, 인증메일 안내
+- **내정보** (`pages/profile.vue`) — 로그인 상태에 따른 분기, 사용자 정보, 로그아웃
 
 ## 미구현
 
-- 내정보 화면 (`/profile`)
 - 신청하기 API 연결 (현재 alert 처리)
 - 마감 임박 기준일이 하드코딩 — API 연결 시 서버 시간 기준으로 교체 필요
+- 내 활동 내역 (등록/신청 클래스) — 플레이스홀더만 구현
 
 ---
 
@@ -193,9 +195,25 @@ NUXT_PUBLIC_SUPABASE_ANON_KEY=...
 - 등록 성공 시: `refreshNuxtData('classes')` → 토스트 메시지 → 1.5초 후 `/search` 이동
 - 입력값 검증: 필수 항목 + 마감날짜 < 수업날짜 조건
 
+## Auth 연동 현황
+
+| 기능 | 구현 방식 |
+|---|---|
+| 로그인/회원가입 | Supabase Auth 이메일/비밀번호 |
+| 전역 상태 관리 | `useState('auth-user')` — SSR 호환 |
+| 세션 초기화 | `supabase.ts` 플러그인 async 실행, `getSession()` |
+| 상태 변경 감지 | `onAuthStateChange` 리스너 |
+| 에러 메시지 | `useAuth.ts`의 `parseError()` — Supabase 영문 → 한국어 매핑 |
+
+**파일 구조:**
+- `app/plugins/supabase.ts` — 클라이언트 생성 + auth 초기화
+- `app/composables/useAuth.ts` — `user`, `isLoggedIn`, `signIn`, `signUp`, `signOut`
+
 ## 다음 작업자 참고
 
 - 검색/필터는 클라이언트 사이드 필터링 (DB 쿼리 아님) — 데이터 많아지면 서버 사이드 쿼리로 전환 필요.
 - 마감 임박 판단(`isDeadlineSoon`)은 브라우저 로컬 시간 기준 — 서비스 운영 시 서버 시간 기준으로 교체 필요.
-- `@supabase/supabase-js` 직접 사용 (`@nuxtjs/supabase` 모듈 미사용) — auth 필요 시 모듈 전환 검토.
+- `@supabase/supabase-js` 직접 사용 (`@nuxtjs/supabase` 모듈 미사용).
 - Update/Delete 미구현 — 등록한 클래스 수정/삭제 기능 필요 시 추가 작업 필요.
+- 내정보의 활동 내역은 플레이스홀더 — 실제 데이터 연결 시 `user.id`로 classes 테이블 필터링.
+- Supabase Email 인증 활성화 필요: Supabase 대시보드 > Authentication > Providers > Email.
