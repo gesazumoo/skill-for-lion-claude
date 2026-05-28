@@ -102,31 +102,33 @@ skill-for-lion-claude/
 
 ## 디자인 시스템
 
-**Apple Design Language** (`DESIGN.md` 기반) 적용 완료.
+**Nike Design Language** (`DESIGN.md` 기반) 적용 완료.
 
-- **폰트**: Inter (Google Fonts) — SF Pro 대체, weight 300/400/600/700
-- **Primary**: `#0066cc` (Action Blue) — 버튼, 링크, 아이콘 active 상태
-- **Canvas**: `#ffffff` / Parchment: `#f5f5f7` / Dark Tile: `#272729`
-- **Ink**: `#1d1d1f` / Muted: `#7a7a7a` / On-dark: `#ffffff` / On-dark muted: `#cccccc`
-- **Border**: `#e0e0e0` (hairline) / `rgba(0,0,0,0.08)` (divider-soft)
-- **Radius**: 9999px (pill), 18px (utility card), 8px (compact utility), 0 (full-bleed tile)
-- **Shadow**: 없음 (UI 요소에 shadow 미사용)
-- **Body**: 17px / 400 / lh 1.47 / ls -0.374px
-- **Display**: 34-56px / 600 / lh 1.07-1.10 / ls -0.28~-0.374px
-- **Section padding**: 80px (spacing.section)
-- **Section rhythm**: dark tile → white canvas → parchment → dark CTA band
+- **폰트**: Bebas Neue (Hero 캠페인 헤드라인) + Inter 400/500 (UI 전반)
+- **Ink**: `#111111` — 기본 CTA, 제목, 활성 상태 (Nike의 유일한 "컬러")
+- **Canvas**: `#ffffff` — 페이지 배경, 카드 배경
+- **Soft Cloud**: `#f5f5f5` — 카드 이미지 배경, 검색 필, 섹션 배경
+- **Hairline**: `#cacacb` / Hairline Soft: `#e5e5e5` (divider)
+- **Mute**: `#707072` / Stone: `#9e9ea0` (보조 텍스트)
+- **Sale**: `#d30005` — 마감임박 뱃지 텍스트 (유일한 컬러 포인트)
+- **Radius**: 0px (카드/컨테이너) / 24px (검색 필) / 30px (CTA 버튼, 필터 칩) / 9999px (아이콘 원형)
+- **Shadow**: 없음 (완전 플랫)
+- **Display**: Bebas Neue, 72-96px / lh 0.9 / uppercase (Hero 전용)
+- **Section heading**: 32px / weight 500 / lh 1.2
+- **Body**: 16px / weight 400 / lh 1.5
+- **Section rhythm**: ink hero (black) → white canvas → soft-cloud → ink CTA band (black)
 
 ## 주요 파일
 
 | 파일 | 역할 |
 |---|---|
 | `app/composables/useClasses.ts` | ClassItem 타입, CATEGORIES, 더미 데이터 14개, isDeadlineSoon / formatPrice / formatDate 유틸 |
-| `app/components/ClassCard.vue` | Apple store-utility-card 스타일 — `variant="scroll"` (18px radius, hairline border) / `variant="list"` (검색 화면용) |
-| `app/components/ClassCardVertical.vue` | 마감임박 세로 카드 — 18px radius, primary blue pill 신청하기 버튼, `@select` emit |
-| `app/components/ClassDetail.vue` | 클래스 상세보기 바텀 시트 — `<Teleport to="body">`, `@close` emit, 신청하기 버튼 |
-| `app/components/BottomNavigation.vue` | 하단 네비 — frosted glass (parchment 85% + backdrop-blur), active=#0066cc, inactive=#7a7a7a |
+| `app/components/ClassCard.vue` | Nike product-card 스타일 — zero radius, zero shadow / `variant="scroll"` (1:1 이미지) / `variant="list"` (검색 화면) |
+| `app/components/ClassCardVertical.vue` | 마감임박 세로 카드 — 4:5 이미지, zero radius, ink pill 신청하기 버튼 |
+| `app/components/ClassDetail.vue` | 클래스 상세보기 바텀 시트 — `<Teleport to="body">`, hairline divider rows, ink 신청하기 버튼 |
+| `app/components/BottomNavigation.vue` | 하단 네비 — white bg, hairline-top border, active=#111111, inactive=#9e9ea0 |
 | `app/app.vue` | NuxtPage + BottomNavigation 전역 배치, 현재 라우트로 activeMenu 자동 계산 |
-| `nuxt.config.ts` | Google Fonts Inter 로드 (head.link), @tailwindcss/vite 플러그인 |
+| `nuxt.config.ts` | Google Fonts Bebas Neue + Inter 로드 (head.link), @tailwindcss/vite 플러그인 |
 
 ## 검색 화면 동작
 
@@ -137,12 +139,12 @@ skill-for-lion-claude/
 
 ## 홈 화면 동작
 
-- Hero 영역 (near-black #272729): 검색창 Enter → `/search?q=<키워드>` 이동
+- Hero 영역 (ink #111111): Bebas Neue 대형 캠페인 헤드라인, 검색창 Enter → `/search?q=<키워드>` 이동
 - 카테고리 칩 클릭 → `/search?category=<카테고리>` 이동
-- 추천 클래스 섹션 (white): 가로 스크롤 카드, 전체보기 → `/search`
-- 마감 임박 섹션 (parchment): 가로 스크롤 카드
+- 추천 클래스 섹션 (white canvas): 가로 스크롤 카드, 전체보기 → `/search`
+- 마감 임박 섹션 (soft cloud #f5f5f5): 가로 스크롤 카드
 - 추천/마감임박 클래스 카드 클릭 → ClassDetail 바텀 시트 오픈
-- CTA 밴드 (near-black): 클래스 등록하기 → `/register`, 클래스 둘러보기 → `/search`
+- CTA 밴드 (ink #111111): Bebas Neue 헤드라인, 클래스 등록하기 → `/register`, 클래스 둘러보기 → `/search`
 
 ## 데이터 현황
 

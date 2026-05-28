@@ -24,70 +24,59 @@ function handleCategoryClick(category: string) {
 </script>
 
 <template>
-  <div class="min-h-screen pb-20" style="background: #ffffff;">
+  <div style="min-height: 100vh; background: #ffffff; padding-bottom: 80px;">
 
-    <!-- Hero (밝은 흰 배경, 컬러풀 헤드라인) -->
-    <section style="background: linear-gradient(160deg, #f0f9ff 0%, #ffffff 60%); padding: 56px 20px 48px;">
+    <!-- Hero — Nike editorial campaign tile -->
+    <section style="background: #111111; padding: 72px 20px 56px;">
       <div style="max-width: 600px; margin: 0 auto;">
-        <span style="
-          display: inline-block;
-          background: #e0f2fe;
-          color: #0284c7;
+
+        <p style="
           font-size: 12px;
-          font-weight: 600;
-          letter-spacing: 0.06em;
+          font-weight: 500;
+          color: #9e9ea0;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
-          padding: 4px 12px;
-          border-radius: 9999px;
-          margin-bottom: 16px;
-        ">원데이 클래스</span>
+          margin-bottom: 20px;
+        ">One-Day Class</p>
 
         <h1 style="
-          font-size: clamp(32px, 8vw, 48px);
-          font-weight: 700;
-          line-height: 1.2;
-          color: #0f172a;
-          margin-bottom: 12px;
+          font-family: 'Bebas Neue', 'Anton', Impact, sans-serif;
+          font-size: clamp(72px, 20vw, 96px);
+          font-weight: 400;
+          line-height: 0.9;
+          color: #ffffff;
+          letter-spacing: 0.01em;
+          text-transform: uppercase;
+          margin-bottom: 36px;
         ">
-          오늘 바로<br/>
-          <span style="color: #0ea5e9;">참여 가능한</span><br/>
-          클래스 찾기
+          오늘 바로<br>참여<br>가능한<br>클래스
         </h1>
-        <p style="
-          font-size: 15px;
-          font-weight: 300;
-          color: #64748b;
-          margin-bottom: 32px;
-          line-height: 1.7;
-        ">
-          운동, 취미, 스터디 — 원하는 클래스를 지금 찾아보세요
-        </p>
 
-        <!-- 검색창 -->
+        <!-- 검색창 — search-pill spec: bg #f5f5f5, rounded 24px, h 48px -->
         <div style="position: relative; margin-bottom: 20px;">
           <input
             v-model="searchQuery"
             type="text"
             placeholder="클래스 검색"
-            class="search-input"
+            class="nike-search"
             style="
               width: 100%;
               height: 48px;
               padding: 0 52px 0 20px;
-              background: #ffffff;
-              color: #0f172a;
-              font-size: 15px;
-              font-family: inherit;
-              border-radius: 9999px;
-              border: 1.5px solid #e2e8f0;
+              background: #f5f5f5;
+              color: #111111;
+              font-family: 'Inter', sans-serif;
+              font-size: 16px;
+              font-weight: 400;
+              border-radius: 24px;
+              border: none;
               outline: none;
               box-sizing: border-box;
-              box-shadow: 0 2px 8px rgba(14, 165, 233, 0.08);
             "
             @keyup.enter="handleSearch"
           />
           <button
-            class="search-btn"
+            class="search-submit"
             style="
               position: absolute;
               right: 6px;
@@ -95,7 +84,7 @@ function handleCategoryClick(category: string) {
               transform: translateY(-50%);
               width: 36px;
               height: 36px;
-              background: #0ea5e9;
+              background: #111111;
               border-radius: 9999px;
               border: none;
               cursor: pointer;
@@ -111,44 +100,56 @@ function handleCategoryClick(category: string) {
           </button>
         </div>
 
-        <!-- 카테고리 칩 -->
+        <!-- 카테고리 칩 — filter-chip spec: pill 30px, active=ink, inactive=transparent/border -->
         <div class="chip-row">
           <button
             v-for="category in CATEGORIES"
             :key="category"
             class="chip-btn"
             :style="{
-              padding: '7px 16px',
+              padding: '8px 16px',
               fontSize: '13px',
-              fontFamily: 'inherit',
-              fontWeight: selectedCategory === category ? '600' : '400',
-              borderRadius: '9999px',
-              border: 'none',
-              background: selectedCategory === category ? '#0ea5e9' : '#f1f5f9',
-              color: selectedCategory === category ? '#ffffff' : '#64748b',
+              fontFamily: '\'Inter\', sans-serif',
+              fontWeight: '500',
+              borderRadius: '30px',
+              border: selectedCategory === category ? 'none' : '1px solid #707072',
+              background: selectedCategory === category ? '#ffffff' : 'transparent',
+              color: selectedCategory === category ? '#111111' : '#9e9ea0',
               cursor: 'pointer',
               whiteSpace: 'nowrap',
               flexShrink: '0',
-              transition: 'all 0.15s',
+              minHeight: '36px',
             }"
             @click="handleCategoryClick(category)"
           >
             {{ category }}
           </button>
         </div>
+
       </div>
     </section>
 
-    <!-- 추천 클래스 (흰 배경) -->
-    <section style="background: #ffffff; padding: 40px 0 32px;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 0 20px 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <h2 style="font-size: 20px; font-weight: 600; color: #0f172a;">추천 클래스</h2>
-          <button
-            style="font-size: 13px; font-weight: 400; color: #0ea5e9; background: none; border: none; cursor: pointer;"
-            @click="router.push('/search')"
-          >전체보기 →</button>
-        </div>
+    <!-- 추천 클래스 — white canvas -->
+    <section style="background: #ffffff; padding: 48px 0 0;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 0 20px 16px; display: flex; align-items: baseline; justify-content: space-between;">
+        <h2 style="
+          font-size: 32px;
+          font-weight: 500;
+          color: #111111;
+          line-height: 1.2;
+        ">추천 클래스</h2>
+        <button
+          style="
+            font-size: 14px;
+            font-weight: 500;
+            color: #707072;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+          "
+          @click="router.push('/search')"
+        >전체보기</button>
       </div>
       <div class="card-scroll-row">
         <ClassCard
@@ -161,22 +162,25 @@ function handleCategoryClick(category: string) {
       </div>
     </section>
 
-    <!-- 마감 임박 (아주 연한 노랑/주황 배경) -->
-    <section style="background: #fffbeb; padding: 40px 0 32px;">
-      <div style="max-width: 600px; margin: 0 auto; padding: 0 20px 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <h2 style="font-size: 20px; font-weight: 600; color: #0f172a;">마감 임박</h2>
-          <span style="
-            font-size: 12px;
-            font-weight: 600;
-            color: #d97706;
-            background: #fef3c7;
-            padding: 3px 10px;
-            border-radius: 9999px;
-          ">3일 이내</span>
-        </div>
+    <!-- 마감 임박 — soft cloud surface -->
+    <section style="background: #f5f5f5; padding: 48px 0 0; margin-top: 48px;">
+      <div style="max-width: 600px; margin: 0 auto; padding: 0 20px 16px; display: flex; align-items: baseline; justify-content: space-between;">
+        <h2 style="
+          font-size: 32px;
+          font-weight: 500;
+          color: #111111;
+          line-height: 1.2;
+        ">마감 임박</h2>
+        <span style="
+          font-size: 12px;
+          font-weight: 500;
+          color: #d30005;
+          font-family: 'Inter', sans-serif;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        ">3일 이내</span>
       </div>
-      <div v-if="deadlineSoonClasses.length > 0" class="card-scroll-row">
+      <div v-if="deadlineSoonClasses.length > 0" class="card-scroll-row" style="padding-bottom: 48px;">
         <ClassCardVertical
           v-for="item in deadlineSoonClasses"
           :key="item.id"
@@ -184,69 +188,71 @@ function handleCategoryClick(category: string) {
           @select="selectedClass = $event"
         />
       </div>
-      <div v-else style="padding: 24px 20px; text-align: center; color: #94a3b8; font-size: 15px;">
+      <div v-else style="padding: 32px 20px 48px; color: #9e9ea0; font-size: 16px; font-weight: 400;">
         현재 마감 임박 클래스가 없습니다
       </div>
     </section>
 
-    <!-- CTA 밴드 (밝은 sky blue 배경) -->
-    <section style="background: #0ea5e9; padding: 56px 20px; text-align: center;">
+    <!-- CTA 밴드 — ink (#111111) with white pill CTA -->
+    <section style="background: #111111; padding: 80px 20px; text-align: center;">
       <div style="max-width: 480px; margin: 0 auto;">
-        <span style="
-          display: inline-block;
-          background: rgba(255,255,255,0.25);
-          color: #ffffff;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.08em;
+        <p style="
+          font-size: 12px;
+          font-weight: 500;
+          color: #9e9ea0;
+          letter-spacing: 0.1em;
           text-transform: uppercase;
-          padding: 4px 12px;
-          border-radius: 9999px;
-          margin-bottom: 20px;
-        ">Class Hosting</span>
+          margin-bottom: 16px;
+        ">Class Hosting</p>
         <h2 style="
-          font-size: clamp(24px, 6vw, 36px);
-          font-weight: 700;
-          line-height: 1.25;
+          font-family: 'Bebas Neue', 'Anton', Impact, sans-serif;
+          font-size: clamp(48px, 12vw, 64px);
+          font-weight: 400;
+          line-height: 0.9;
           color: #ffffff;
-          margin-bottom: 12px;
-        ">
-          나만의 클래스를<br/>직접 모집해보세요
-        </h2>
-        <p style="font-size: 15px; font-weight: 300; color: rgba(255,255,255,0.85); margin-bottom: 36px; line-height: 1.7;">
-          클래스를 직접 개설하고 수강생을 모집할 수 있어요
-        </p>
+          text-transform: uppercase;
+          margin-bottom: 24px;
+          letter-spacing: 0.01em;
+        ">나만의 클래스를<br>직접 모집해보세요</h2>
+        <p style="
+          font-size: 16px;
+          font-weight: 400;
+          color: #707072;
+          margin-bottom: 40px;
+          line-height: 1.5;
+        ">클래스를 직접 개설하고 수강생을 모집할 수 있어요</p>
         <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+          <!-- button-outline-on-image: white pill on dark surface -->
           <button
-            class="cta-btn-primary"
+            class="cta-primary"
             style="
-              padding: 12px 28px;
+              padding: 16px 32px;
               background: #ffffff;
-              color: #0ea5e9;
-              font-size: 15px;
-              font-family: inherit;
-              font-weight: 600;
-              border-radius: 9999px;
+              color: #111111;
+              font-family: 'Inter', sans-serif;
+              font-size: 16px;
+              font-weight: 500;
+              border-radius: 30px;
               border: none;
               cursor: pointer;
-              min-height: 44px;
-              box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+              min-height: 48px;
             "
             @click="router.push('/register')"
           >클래스 등록하기</button>
+          <!-- button-secondary on dark: soft-cloud -->
           <button
-            class="cta-btn-ghost"
+            class="cta-secondary"
             style="
-              padding: 12px 28px;
+              padding: 16px 32px;
               background: transparent;
-              color: #ffffff;
-              font-size: 15px;
-              font-family: inherit;
-              font-weight: 400;
-              border-radius: 9999px;
-              border: 1.5px solid rgba(255,255,255,0.7);
+              color: #9e9ea0;
+              font-family: 'Inter', sans-serif;
+              font-size: 16px;
+              font-weight: 500;
+              border-radius: 30px;
+              border: 1px solid #707072;
               cursor: pointer;
-              min-height: 44px;
+              min-height: 48px;
             "
             @click="router.push('/search')"
           >클래스 둘러보기</button>
@@ -261,7 +267,7 @@ function handleCategoryClick(category: string) {
 <style scoped>
 .card-scroll-row {
   display: flex;
-  gap: 14px;
+  gap: 0;
   overflow-x: auto;
   padding: 0 20px 8px;
   scrollbar-width: none;
@@ -276,11 +282,11 @@ function handleCategoryClick(category: string) {
 }
 .chip-row::-webkit-scrollbar { display: none; }
 
-.chip-btn:active { transform: scale(0.94); }
-.search-btn:active { transform: translateY(-50%) scale(0.93); }
-.cta-btn-primary:active,
-.cta-btn-ghost:active { transform: scale(0.96); }
+.chip-btn:active { opacity: 0.5; transition: opacity 0.1s; }
+.search-submit:active { transform: translateY(-50%) scale(0.93); }
+.cta-primary:active { opacity: 0.5; transition: opacity 0.1s; }
+.cta-secondary:active { opacity: 0.5; transition: opacity 0.1s; }
 
-.search-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.15); }
-.search-input::placeholder { color: #94a3b8; }
+.nike-search::placeholder { color: #9e9ea0; }
+.nike-search:focus { outline: none; box-shadow: 0 0 0 2px #ffffff; }
 </style>

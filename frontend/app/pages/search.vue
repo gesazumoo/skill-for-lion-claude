@@ -39,26 +39,44 @@ watch(() => route.query, (q) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-white pb-20">
+  <div style="min-height: 100vh; background: #ffffff; padding-bottom: 80px;">
 
-    <!-- 스티키 상단 영역 -->
-    <div class="sticky top-0 bg-white z-40 border-b border-[#e5e5e5]">
-      <!-- 검색바 -->
-      <div class="px-4 pt-4 pb-3">
-        <div class="relative">
+    <!-- sticky header — Nike sub-nav: white bg, hairline-soft bottom -->
+    <div style="position: sticky; top: 0; background: #ffffff; z-index: 40; box-shadow: inset 0 -1px 0 #e5e5e5;">
+
+      <!-- 검색바 — search-pill-focused spec: bg #f5f5f5, rounded 24px -->
+      <div style="padding: 12px 20px 10px;">
+        <div style="position: relative;">
+          <svg
+            style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #707072;"
+            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
             v-model="searchQuery"
             type="text"
             placeholder="클래스 검색"
-            class="w-full h-11 pl-10 pr-10 bg-[#f5f5f5] text-[#111111] text-[15px] rounded-[24px] outline-none placeholder:text-[#9e9ea0] focus:bg-white focus:ring-2 focus:ring-[#111111] transition-colors"
+            class="search-input"
+            style="
+              width: 100%;
+              height: 44px;
+              padding: 0 40px 0 42px;
+              background: #f5f5f5;
+              color: #111111;
+              font-family: 'Inter', sans-serif;
+              font-size: 16px;
+              font-weight: 400;
+              border-radius: 24px;
+              border: none;
+              outline: none;
+              box-sizing: border-box;
+            "
             @keyup.enter="handleSearch"
           />
-          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#707072]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
           <button
             v-if="searchQuery"
-            class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-[#9e9ea0]"
+            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; background: none; border: none; cursor: pointer; color: #9e9ea0;"
             @click="clearSearch"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -68,15 +86,26 @@ watch(() => route.query, (q) => {
         </div>
       </div>
 
-      <!-- 카테고리 필터 -->
-      <div class="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-none">
+      <!-- 카테고리 필터 — filter-chip spec: active=ink, inactive=canvas+hairline, 30px radius -->
+      <div class="chip-row" style="padding: 0 20px 12px;">
         <button
           v-for="category in CATEGORIES"
           :key="category"
-          class="flex-shrink-0 px-4 py-1.5 text-[13px] font-medium rounded-[30px] border transition-colors"
-          :class="selectedCategory === category
-            ? 'bg-[#111111] text-white border-[#111111]'
-            : 'bg-white text-[#111111] border-[#cacacb]'"
+          class="chip-btn"
+          :style="{
+            flexShrink: '0',
+            padding: '7px 16px',
+            fontSize: '13px',
+            fontFamily: '\'Inter\', sans-serif',
+            fontWeight: '500',
+            borderRadius: '30px',
+            border: selectedCategory === category ? 'none' : '1px solid #cacacb',
+            background: selectedCategory === category ? '#111111' : '#ffffff',
+            color: selectedCategory === category ? '#ffffff' : '#111111',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            minHeight: '36px',
+          }"
           @click="selectCategory(category)"
         >
           {{ category }}
@@ -84,22 +113,22 @@ watch(() => route.query, (q) => {
       </div>
     </div>
 
-    <!-- 검색 결과 헤더 -->
-    <div class="px-4 py-3 flex items-center justify-between">
-      <p class="text-[13px] text-[#707072]">
+    <!-- 결과 카운트 행 -->
+    <div style="padding: 12px 20px; display: flex; align-items: center; justify-content: space-between;">
+      <p style="font-size: 14px; font-weight: 500; color: #707072;">
         <span v-if="searchQuery">
-          "<span class="text-[#111111] font-medium">{{ searchQuery }}</span>" 검색 결과
+          "<span style="color: #111111;">{{ searchQuery }}</span>" 검색 결과
         </span>
         <span v-else-if="selectedCategory !== '전체'">
-          <span class="text-[#111111] font-medium">{{ selectedCategory }}</span> 클래스
+          <span style="color: #111111;">{{ selectedCategory }}</span> 클래스
         </span>
         <span v-else>전체 클래스</span>
       </p>
-      <p class="text-[13px] text-[#707072]">{{ results.length }}개</p>
+      <p style="font-size: 14px; font-weight: 500; color: #9e9ea0;">{{ results.length }}개</p>
     </div>
 
-    <!-- 검색 결과 리스트 -->
-    <div v-if="results.length > 0" class="px-4">
+    <!-- 검색 결과 -->
+    <div v-if="results.length > 0" style="padding: 0 20px;">
       <ClassCard
         v-for="item in results"
         :key="item.id"
@@ -110,29 +139,29 @@ watch(() => route.query, (q) => {
     </div>
 
     <!-- 결과 없음 -->
-    <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
-      <svg class="w-12 h-12 text-[#cacacb] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+    <div v-else style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center;">
+      <svg style="width: 48px; height: 48px; color: #cacacb; margin-bottom: 16px;" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
         <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
-      <p class="text-[16px] font-medium text-[#111111] mb-1">검색 결과가 없습니다</p>
-      <p class="text-[14px] text-[#707072]">다른 키워드나 카테고리로 검색해보세요</p>
+      <p style="font-size: 16px; font-weight: 500; color: #111111; margin-bottom: 8px;">검색 결과가 없습니다</p>
+      <p style="font-size: 14px; font-weight: 400; color: #707072;">다른 키워드나 카테고리로 검색해보세요</p>
     </div>
 
-    <!-- 클래스 상세보기 바텀 시트 -->
-    <ClassDetail
-      :class-item="selectedClass"
-      @close="selectedClass = null"
-    />
-
+    <ClassDetail :class-item="selectedClass" @close="selectedClass = null" />
   </div>
 </template>
 
 <style scoped>
-.scrollbar-none {
-  -ms-overflow-style: none;
+.chip-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
   scrollbar-width: none;
 }
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
+.chip-row::-webkit-scrollbar { display: none; }
+
+.chip-btn:active { opacity: 0.5; transition: opacity 0.1s; }
+
+.search-input::placeholder { color: #9e9ea0; }
+.search-input:focus { background: #ffffff; box-shadow: 0 0 0 2px #111111; }
 </style>
