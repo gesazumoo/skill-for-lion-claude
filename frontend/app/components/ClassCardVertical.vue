@@ -3,6 +3,7 @@ import type { ClassItem } from '~/composables/useClasses'
 
 const props = defineProps<{
   classItem: ClassItem
+  fullWidth?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -18,10 +19,10 @@ const spotsLeft = computed(() => props.classItem.maxParticipants - props.classIt
 
 <template>
   <!-- 세로형 클래스 카드 — Nike product card: flat, no radius, no shadow -->
-  <div class="w-56 flex-shrink-0 bg-canvas">
+  <div class="bg-canvas" :class="fullWidth ? 'w-full' : 'w-56 flex-shrink-0'">
 
     <!-- Image: full-bleed on soft-cloud, zero radius -->
-    <div class="relative h-56 bg-soft-cloud overflow-hidden">
+    <div class="relative bg-soft-cloud overflow-hidden" :class="fullWidth ? 'aspect-square' : 'h-56'">
       <img
         :src="classItem.thumbnail"
         :alt="classItem.title"

@@ -92,11 +92,47 @@ skill-for-lion-claude/
 
 ## 상태
 
-**빈 Nuxt4 초기 상태** — `/reset-frontend` 실행으로 초기화됨 (2026-05-28)
+**검색 화면 + 클래스 상세보기 화면 구현 완료** (2026-05-28)
 
-- `app/app.vue`: NuxtWelcome 기본 화면
-- `nuxt.config.ts`: 기본 설정만
-- 추가 패키지 없음 (nuxt / vue / vue-router 기본만)
+### 디자인 시스템
+- **DESIGN.md 기반**: Nike 디자인 시스템 전면 적용
+- 컬러: ink `#111111` / canvas `#fff` / soft-cloud `#f5f5f5` / sale `#d30005` / mute `#707072`
+- 폰트: Black Han Sans (캠페인 헤드라인) + Inter (UI 본문)
+- 카드: 완전 flat (radius 0, shadow 없음)
+- 버튼: pill `rounded-[30px]`, h-12, ink/canvas 반전
+- Hero: ink 다크밴드 + 캠페인 헤드라인 + soft-cloud 검색
+- 섹션 라벨: uppercase + letter-spacing tracking
+
+### 구현된 화면
+- `app/pages/index.vue` — 홈 화면 (ink Hero, 추천 클래스, 마감 임박, ink CTA 밴드)
+- `app/pages/search.vue` — 검색 화면 (sticky 검색창, 카테고리 필터, 2열 그리드 클래스 리스트)
+- `app/pages/classes/[id].vue` — 클래스 상세보기 화면 (썸네일, 전체 정보, 하단 고정 CTA)
+
+### 구현된 컴포넌트
+- `app/components/ClassCardHorizontal.vue` — 가로형 클래스 카드 (추천 클래스용, flat Nike 스타일)
+- `app/components/ClassCardVertical.vue` — 세로형 클래스 카드 (`fullWidth` prop으로 2열 그리드 / 가로 스크롤 모두 지원)
+- `app/components/BottomNavigation.vue` — 하단 네비게이션 (NuxtLink로 실제 라우팅 연결)
+
+### 구현된 Composable
+- `app/composables/useClasses.ts` — 더미 데이터 14개, isDeadlineSoon/formatPrice/formatDate 유틸
+
+### 설치된 패키지
+- `tailwindcss` + `@tailwindcss/vite` — TailwindCSS v4 (Vite 플러그인 방식)
+- Google Fonts: Black Han Sans + Inter (main.css @import)
+
+### 핵심 기능
+- 카테고리 필터 (전체/운동/러닝/수영/스터디/취미/클래스)
+- 검색창 (제목·카테고리·지역 필터링) — Enter 시 검색 화면으로 이동, URL `?q=` 파라미터 연동
+- 마감 임박 자동 감지 (3일 이내)
+- 신청하기 버튼 → alert로 클래스 제목 표시
+- 홈 → 검색 화면 이동: Enter 키 / "전체 보기" 버튼 / 하단 네비게이션 검색 탭
+- 검색 → 클래스 상세보기 이동: 카드 클릭
+
+### 다음 작업자 참고
+- `ClassCardVertical`에 `fullWidth` prop 추가됨 — 검색 결과(2열 그리드)는 `:fullWidth="true"`, 가로 스크롤은 prop 없이 사용
+- 하단 네비게이션은 NuxtLink로 연결됨. `/register`, `/profile` 페이지는 미구현 상태
+- 클래스 상세보기는 `/classes/:id` 라우트. 현재 더미 데이터 기반이며, `useClasses().classes`로 id 매칭
+- 검색 URL 파라미터: `/search?q=키워드` — 홈 검색창 Enter 시 자동 전달
 
 ## Supabase 테이블 (DB는 유지됨)
 

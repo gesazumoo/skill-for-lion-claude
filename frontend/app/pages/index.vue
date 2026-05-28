@@ -26,6 +26,11 @@ const filteredClasses = computed(() => {
 const handleApply = (classItem: ClassItem) => {
   alert(`"${classItem.title}" 클래스에 신청되었습니다!`)
 }
+
+const goToSearch = () => {
+  const q = searchQuery.value.trim()
+  navigateTo(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+}
 </script>
 
 <template>
@@ -63,6 +68,7 @@ const handleApply = (classItem: ClassItem) => {
           type="text"
           placeholder="클래스 검색"
           class="flex-1 text-sm text-ink bg-transparent outline-none placeholder-stone"
+          @keydown.enter="goToSearch"
         />
         <button v-if="searchQuery" @click="searchQuery = ''" class="flex-shrink-0">
           <svg class="w-3.5 h-3.5 text-mute" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -98,9 +104,9 @@ const handleApply = (classItem: ClassItem) => {
           <h2 class="text-2xl font-medium text-ink leading-tight">추천 클래스</h2>
         </div>
         <!-- Text link: link-md underline -->
-        <button class="text-xs font-medium text-ink underline underline-offset-2 pb-0.5">
+        <NuxtLink to="/search" class="text-xs font-medium text-ink underline underline-offset-2 pb-0.5">
           전체 보기
-        </button>
+        </NuxtLink>
       </div>
 
       <!-- Filter feedback -->
