@@ -5,60 +5,48 @@ const props = defineProps<{
   classItem: ClassItem
 }>()
 
-const { isDeadlineSoon, formatPrice } = useClasses()
+const { isDeadlineSoon, getDeadlineDaysLeft, formatPrice } = useClasses()
 
 const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
-
-const participantRatio = computed(() => {
-  return Math.round((props.classItem.currentParticipants / props.classItem.maxParticipants) * 100)
-})
+const daysLeft = computed(() => getDeadlineDaysLeft(props.classItem.deadline))
 </script>
 
 <template>
-  <div class="w-40 flex-shrink-0 bg-white rounded-2xl overflow-hidden cursor-pointer active:scale-95 transition-transform">
-    <!-- Thumbnail -->
-    <div class="relative h-28 bg-gray-100 overflow-hidden">
+  <!-- 가로형 클래스 카드 — Nike product card: flat, no radius, no shadow -->
+  <div class="w-44 flex-shrink-0 bg-canvas">
+
+    <!-- Image: full-bleed on soft-cloud, zero radius, zero shadow -->
+    <div class="relative h-44 bg-soft-cloud overflow-hidden">
       <img
         :src="classItem.thumbnail"
         :alt="classItem.title"
         class="w-full h-full object-cover"
         loading="lazy"
       />
-      <!-- Deadline badge -->
-      <span
-        v-if="deadlineSoon"
-        class="absolute top-2 left-2 bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full"
-      >
-        마감 임박
-      </span>
-      <!-- Category badge -->
-      <span class="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full backdrop-blur-sm">
+      <!-- Category badge: ink pill, top-left -->
+      <span class="absolute top-2 left-2 bg-ink text-canvas text-[10px] font-medium tracking-[0.1em] uppercase px-2.5 py-0.5 rounded-[30px]">
         {{ classItem.category }}
       </span>
     </div>
 
-    <!-- Info -->
-    <div class="p-3">
-      <h3 class="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2">
+    <!-- Metadata: directly below image, 8px gap between rows (spacing.sm) -->
+    <div class="pt-2">
+      <!-- Deadline: sale color text only, no badge background (Nike badge-sale-text) -->
+      <p v-if="deadlineSoon" class="text-[11px] font-medium text-sale leading-none mb-1">
+        {{ daysLeft === 0 ? '오늘 마감' : `마감 D-${daysLeft}` }}
+      </p>
+      <!-- Title: body-strong 13px/500 -->
+      <p class="text-[13px] font-medium text-ink leading-snug line-clamp-2 mb-1">
         {{ classItem.title }}
-      </h3>
-      <!-- Participants -->
-      <div class="mb-1.5">
-        <div class="flex justify-between items-center mb-1">
-          <span class="text-xs text-gray-400">참가 인원</span>
-          <span class="text-xs text-gray-600 font-medium">
-            {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명
-          </span>
-        </div>
-        <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-indigo-500 rounded-full transition-all"
-            :style="{ width: `${participantRatio}%` }"
-          />
-        </div>
-      </div>
-      <!-- Price -->
-      <p class="text-sm font-bold text-indigo-600">{{ formatPrice(classItem.price) }}</p>
+      </p>
+      <!-- Participants: caption-md mute -->
+      <p class="text-[12px] text-mute mb-1">
+        {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명 참가
+      </p>
+      <!-- Price: body-strong ink -->
+      <p class="text-[13px] font-medium text-ink">
+        {{ formatPrice(classItem.price) }}
+      </p>
     </div>
   </div>
 </template>

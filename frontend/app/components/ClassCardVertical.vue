@@ -13,93 +13,58 @@ const { isDeadlineSoon, getDeadlineDaysLeft, formatPrice, formatDate } = useClas
 
 const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
 const daysLeft = computed(() => getDeadlineDaysLeft(props.classItem.deadline))
-
-const spotsLeft = computed(() =>
-  props.classItem.maxParticipants - props.classItem.currentParticipants
-)
-
-const categoryColors: Record<string, string> = {
-  '운동': 'bg-blue-100 text-blue-700',
-  '러닝': 'bg-green-100 text-green-700',
-  '수영': 'bg-cyan-100 text-cyan-700',
-  '스터디': 'bg-yellow-100 text-yellow-700',
-  '취미': 'bg-pink-100 text-pink-700',
-  '클래스': 'bg-purple-100 text-purple-700'
-}
-
-const categoryColor = computed(() =>
-  categoryColors[props.classItem.category] ?? 'bg-gray-100 text-gray-700'
-)
+const spotsLeft = computed(() => props.classItem.maxParticipants - props.classItem.currentParticipants)
 </script>
 
 <template>
-  <div class="w-56 flex-shrink-0 bg-white rounded-2xl overflow-hidden">
-    <!-- Thumbnail -->
-    <div class="relative h-36 bg-gray-100 overflow-hidden">
+  <!-- 세로형 클래스 카드 — Nike product card: flat, no radius, no shadow -->
+  <div class="w-56 flex-shrink-0 bg-canvas">
+
+    <!-- Image: full-bleed on soft-cloud, zero radius -->
+    <div class="relative h-56 bg-soft-cloud overflow-hidden">
       <img
         :src="classItem.thumbnail"
         :alt="classItem.title"
         class="w-full h-full object-cover"
         loading="lazy"
       />
-      <!-- Deadline warning -->
-      <div
-        v-if="deadlineSoon"
-        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-red-600/90 to-transparent px-3 py-2"
-      >
-        <p class="text-white text-xs font-bold">
-          {{ daysLeft === 0 ? '오늘 마감!' : `D-${daysLeft} 마감 임박` }}
+      <!-- Deadline bar: sale red, top of image (only when urgent) -->
+      <div v-if="deadlineSoon" class="absolute top-0 left-0 right-0 bg-sale px-3 py-1.5">
+        <p class="text-canvas text-[11px] font-medium tracking-[0.1em] uppercase">
+          {{ daysLeft === 0 ? '오늘 마감' : `D-${daysLeft} 마감 임박` }}
         </p>
       </div>
+      <!-- On-image CTA: white pill bottom-left (Nike button-outline-on-image) -->
+      <button
+        @click="emit('apply', classItem)"
+        class="absolute bottom-3 left-3 bg-canvas text-ink text-xs font-medium px-4 h-8 rounded-[30px] active:opacity-70 transition-opacity"
+      >
+        신청하기
+      </button>
     </div>
 
-    <!-- Info -->
-    <div class="p-3">
-      <!-- Category -->
-      <span :class="['text-xs font-semibold px-2 py-0.5 rounded-full', categoryColor]">
+    <!-- Metadata: directly below image, 8px gap between rows -->
+    <div class="pt-2">
+      <!-- Category: uppercase tracking label (caption-md mute) -->
+      <p class="text-[10px] font-medium tracking-[0.18em] uppercase text-mute mb-1">
         {{ classItem.category }}
-      </span>
-
-      <!-- Title -->
-      <h3 class="text-sm font-bold text-gray-900 mt-2 mb-2 line-clamp-2 leading-snug">
+      </p>
+      <!-- Title: body-strong 13px -->
+      <p class="text-[13px] font-medium text-ink line-clamp-2 leading-snug mb-1.5">
         {{ classItem.title }}
-      </h3>
-
-      <!-- Meta -->
-      <div class="space-y-1 mb-3">
-        <div class="flex items-center gap-1.5 text-xs text-gray-500">
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-          <span>{{ formatDate(classItem.date) }}</span>
-        </div>
-        <div class="flex items-center gap-1.5 text-xs text-gray-500">
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span>{{ classItem.location }}</span>
-        </div>
-        <div class="flex items-center gap-1.5 text-xs text-gray-500">
-          <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span>{{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명
-            <span v-if="spotsLeft <= 3" class="text-red-500 font-semibold">(잔여 {{ spotsLeft }}석)</span>
-          </span>
-        </div>
-      </div>
-
-      <!-- Price & Apply -->
-      <div class="flex items-center justify-between">
-        <p class="text-base font-bold text-gray-900">{{ formatPrice(classItem.price) }}</p>
-        <button
-          @click="emit('apply', classItem)"
-          class="bg-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full active:bg-indigo-700 transition-colors"
-        >
-          신청하기
-        </button>
-      </div>
+      </p>
+      <!-- Meta: caption-md mute -->
+      <p class="text-[12px] text-mute mb-0.5">
+        {{ formatDate(classItem.date) }} · {{ classItem.location }}
+      </p>
+      <p class="text-[12px] text-mute mb-2">
+        {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명
+        <span v-if="spotsLeft <= 3" class="text-sale font-medium">· 잔여 {{ spotsLeft }}석</span>
+      </p>
+      <!-- Price: body-strong ink -->
+      <p class="text-[13px] font-medium text-ink">
+        {{ formatPrice(classItem.price) }}
+      </p>
     </div>
   </div>
 </template>
