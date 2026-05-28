@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ClassItem } from '~/composables/useClasses'
-
 const route = useRoute()
 const router = useRouter()
 const { classes } = useClasses()
@@ -37,10 +35,6 @@ const handleSearch = () => {
 const clearSearch = () => {
   searchQuery.value = ''
   router.replace({ query: {} })
-}
-
-const goToDetail = (item: ClassItem) => {
-  navigateTo(`/classes/${item.id}`)
 }
 </script>
 
@@ -108,18 +102,12 @@ const goToDetail = (item: ClassItem) => {
 
       <!-- 2열 그리드 클래스 리스트 -->
       <div v-else class="grid grid-cols-2 gap-x-3 gap-y-8">
-        <div
+        <ClassCardVertical
           v-for="item in filteredClasses"
           :key="item.id"
-          class="cursor-pointer"
-          @click="goToDetail(item)"
-        >
-          <ClassCardVertical
-            :classItem="item"
-            :fullWidth="true"
-            @apply.stop="goToDetail(item)"
-          />
-        </div>
+          :classItem="item"
+          :fullWidth="true"
+        />
       </div>
 
     </div>

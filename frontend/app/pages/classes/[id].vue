@@ -5,9 +5,11 @@ const route = useRoute()
 const classId = Number(route.params.id)
 
 const { isDeadlineSoon, getDeadlineDaysLeft, formatPrice, formatDate } = useClasses()
+const { isApplied, isOwn, isLoading: myDataLoading, refresh: refreshMyData } = useMyData()
+const { show: toast } = useToast()
 
-// 클래스 상세 데이터 (직접 fetch — 신청 후 갱신 목적)
-const { data: classData, refresh: refreshClass } = await useAsyncData(
+// 클래스 정보
+const { data: classData, refresh: refreshClassData } = await useAsyncData(
   `class-${classId}`,
   async () => {
     const { data } = await supabase
@@ -15,21 +17,6 @@ const { data: classData, refresh: refreshClass } = await useAsyncData(
       .select('*')
       .eq('id', classId)
       .single()
-    return data
-  }
-)
-
-// 내 신청 여부 확인
-const { data: myApplication, refresh: refreshApplication } = await useAsyncData(
-  `application-${classId}`,
-  async () => {
-    if (!user.value) return null
-    const { data } = await supabase
-      .from('class_applications')
-      .select('id')
-      .eq('class_id', classId)
-      .eq('user_id', user.value.id)
-      .maybeSingle()
     return data
   }
 )
@@ -49,53 +36,40 @@ const classItem = computed(() => {
     thumbnail: row.thumbnail ?? '',
     deadline: row.deadline,
     description: row.description ?? '',
-    userId: row.user_id,
   }
 })
 
-const hasApplied = computed(() => !!myApplication.value)
-const isFull = computed(() =>
-  classItem.value
-    ? classItem.value.currentParticipants >= classItem.value.maxParticipants
-    : false
-)
+const hasApplied = computed(() => isApplied(classId))
+const isOwnClass = computed(() => isOwn(classId))
+const spotsLeft = computed(() => classItem.value ? classItem.value.maxParticipants - classItem.value.currentParticipants : 0)
+const isFull = computed(() => spotsLeft.value <= 0)
 const deadlineSoon = computed(() => classItem.value ? isDeadlineSoon(classItem.value.deadline) : false)
 const daysLeft = computed(() => classItem.value ? getDeadlineDaysLeft(classItem.value.deadline) : 0)
-const spotsLeft = computed(() =>
-  classItem.value ? classItem.value.maxParticipants - classItem.value.currentParticipants : 0
-)
 
 const isApplying = ref(false)
-const applyError = ref('')
 
 const handleApply = async () => {
-  if (!user.value) {
-    navigateTo('/auth')
-    return
-  }
-  if (!classItem.value || hasApplied.value || isFull.value) return
+  if (!user.value) { navigateTo('/auth'); return }
+  if (myDataLoading.value || !classItem.value || hasApplied.value || isOwnClass.value || isFull.value || isApplying.value) return
 
   isApplying.value = true
-  applyError.value = ''
   try {
-    const { error: insertError } = await supabase
-      .from('class_applications')
-      .insert({ class_id: classItem.value.id, user_id: user.value.id })
-    if (insertError) throw insertError
+    const { error } = await supabase
+      .from('class_map')
+      .insert({ class_id: classId, user_id: user.value.id })
 
-    await supabase
-      .from('classes')
-      .update({ current_participants: classItem.value.currentParticipants + 1 })
-      .eq('id', classItem.value.id)
-
-    await Promise.all([refreshClass(), refreshApplication()])
-    await refreshNuxtData('classes')
-  } catch (e: any) {
-    if (e?.code === '23505') {
-      await refreshApplication()
+    if (error?.code === '23505') {
+      await Promise.all([refreshMyData()])
+      toast('이미 신청한 클래스입니다')
+    } else if (error) {
+      toast('신청 중 오류가 발생했습니다')
     } else {
-      applyError.value = '신청 중 오류가 발생했습니다'
+      // 클래스 데이터 갱신 (current_participants 업데이트)
+      await Promise.all([refreshClassData(), refreshNuxtData('classes'), refreshMyData()])
+      toast('신청이 완료되었습니다')
     }
+  } catch {
+    toast('신청 중 오류가 발생했습니다')
   } finally {
     isApplying.value = false
   }
@@ -111,9 +85,7 @@ useHead({
 
     <div v-if="!classItem" class="flex flex-col items-center justify-center min-h-screen gap-4">
       <p class="text-sm text-mute">클래스를 찾을 수 없습니다</p>
-      <NuxtLink to="/search" class="text-xs font-medium text-ink underline underline-offset-2">
-        검색으로 돌아가기
-      </NuxtLink>
+      <NuxtLink to="/search" class="text-xs font-medium text-ink underline underline-offset-2">검색으로 돌아가기</NuxtLink>
     </div>
 
     <template v-else>
@@ -132,12 +104,7 @@ useHead({
 
       <!-- 썸네일 -->
       <div class="relative w-full aspect-[4/3] bg-soft-cloud overflow-hidden">
-        <img
-          v-if="classItem.thumbnail"
-          :src="classItem.thumbnail"
-          :alt="classItem.title"
-          class="w-full h-full object-cover"
-        />
+        <img v-if="classItem.thumbnail" :src="classItem.thumbnail" :alt="classItem.title" class="w-full h-full object-cover" />
         <div v-if="deadlineSoon" class="absolute top-0 left-0 right-0 bg-sale px-4 py-2">
           <p class="text-canvas text-[11px] font-medium tracking-[0.1em] uppercase">
             {{ daysLeft === 0 ? '오늘 마감' : `D-${daysLeft} 마감 임박` }}
@@ -147,7 +114,6 @@ useHead({
 
       <!-- 클래스 정보 -->
       <div class="px-4 pt-5 pb-36">
-
         <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute mb-2">{{ classItem.category }}</p>
         <h1 class="text-[22px] font-medium text-ink leading-tight mb-5">{{ classItem.title }}</h1>
 
@@ -173,7 +139,7 @@ useHead({
             </svg>
             <span class="text-sm text-ink">
               {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명 참가
-              <span v-if="spotsLeft <= 3 && !isFull" class="text-sale font-medium ml-1">· 잔여 {{ spotsLeft }}석</span>
+              <span v-if="spotsLeft > 0 && spotsLeft <= 3" class="text-sale font-medium ml-1">· 잔여 {{ spotsLeft }}석</span>
               <span v-if="isFull" class="text-sale font-medium ml-1">· 마감</span>
             </span>
           </div>
@@ -193,7 +159,6 @@ useHead({
           <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute mb-3">상세 설명</p>
           <p class="text-sm text-ink leading-relaxed">{{ classItem.description }}</p>
         </div>
-
       </div>
 
       <!-- 하단 고정 CTA -->
@@ -203,13 +168,16 @@ useHead({
             <p class="text-[10px] font-medium tracking-[0.1em] uppercase text-mute">참가비</p>
             <p class="text-xl font-medium text-ink">{{ formatPrice(classItem.price) }}</p>
           </div>
-          <p v-if="spotsLeft <= 5 && !isFull" class="text-xs text-sale font-medium">잔여 {{ spotsLeft }}석</p>
+          <p v-if="spotsLeft > 0 && spotsLeft <= 5" class="text-xs text-sale font-medium">잔여 {{ spotsLeft }}석</p>
         </div>
 
-        <p v-if="applyError" class="text-[11px] text-sale mb-2">{{ applyError }}</p>
+        <!-- 내가 등록한 클래스 -->
+        <div v-if="isOwnClass" class="w-full bg-soft-cloud h-12 rounded-[30px] flex items-center justify-center">
+          <span class="text-sm font-medium text-mute">내가 등록한 클래스</span>
+        </div>
 
         <!-- 신청 완료 -->
-        <div v-if="hasApplied" class="w-full bg-soft-cloud h-12 rounded-[30px] flex items-center justify-center gap-2">
+        <div v-else-if="hasApplied" class="w-full bg-soft-cloud h-12 rounded-[30px] flex items-center justify-center gap-2">
           <svg class="w-4 h-4 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
@@ -234,7 +202,7 @@ useHead({
         <button
           v-else
           @click="handleApply"
-          :disabled="isApplying"
+          :disabled="isApplying || myDataLoading"
           class="w-full bg-ink text-canvas text-sm font-medium h-12 rounded-[30px] flex items-center justify-center gap-2 disabled:opacity-40 active:opacity-70 transition-opacity"
         >
           <svg v-if="isApplying" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

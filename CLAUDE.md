@@ -92,7 +92,7 @@ skill-for-lion-claude/
 
 ## 상태
 
-**유저 소유권 + 신청 기능 완료 + 내정보 화면 클래스 내역 표시** (2026-05-29)
+**class_map 기반 신청 시스템 재구축** (2026-05-29)
 
 ### 디자인 시스템
 - **DESIGN.md 기반**: Nike 디자인 시스템 전면 적용
@@ -112,12 +112,15 @@ skill-for-lion-claude/
 - `app/pages/profile.vue` — 내정보 화면 (비로그인 CTA / 로그인: 사용자 정보 + 신청한 클래스 + 등록한 클래스 + 로그아웃)
 
 ### 구현된 컴포넌트
-- `app/components/ClassCardHorizontal.vue` — 가로형 클래스 카드 (추천 클래스용, flat Nike 스타일)
-- `app/components/ClassCardVertical.vue` — 세로형 클래스 카드 (`fullWidth` prop으로 2열 그리드 / 가로 스크롤 모두 지원)
+- `app/components/ClassCardHorizontal.vue` — 가로형 클래스 카드 (추천 클래스용, flat Nike 스타일, 신청 버튼 포함)
+- `app/components/ClassCardVertical.vue` — 세로형 클래스 카드 (`fullWidth` prop으로 2열 그리드 / 가로 스크롤 모두 지원, 신청 버튼 포함)
 - `app/components/BottomNavigation.vue` — 하단 네비게이션 (NuxtLink로 실제 라우팅 연결)
+- `app/components/AppToast.vue` — 전역 토스트 UI (하단 중앙, Transition 애니메이션, app.vue에서 마운트)
 
 ### 구현된 Composable
 - `app/composables/useClasses.ts` — Supabase `classes` 테이블 fetch, snake_case → camelCase 매핑, isDeadlineSoon/formatPrice/formatDate 유틸
+- `app/composables/useMyData.ts` — 로그인 유저의 신청/등록 클래스 전역 상태 (`useState`). `isApplied(id)`, `isOwn(id)`, `isLoading`, `refresh()`. `app.vue`의 `onAuthStateChange`에서 자동 로드. `refresh()` 내부에서 `getSession()`으로 실제 토큰 확인 후 쿼리
+- `app/composables/useToast.ts` — 전역 토스트 상태. `show(msg)` 호출 → `AppToast` 컴포넌트에서 2.5초 표시
 
 ### 설치된 패키지
 - `tailwindcss` + `@tailwindcss/vite` — TailwindCSS v4 (Vite 플러그인 방식)
@@ -128,9 +131,11 @@ skill-for-lion-claude/
 - **Supabase 실데이터** — `classes` 테이블에서 fetch, 홈/검색/상세 모두 연동
 - **클래스 등록** — Supabase INSERT + Storage 썸네일 업로드, 성공 시 `refreshNuxtData('classes')` 캐시 갱신
 - **Supabase Auth** — 이메일/비밀번호 회원가입·로그인·로그아웃, `useSupabaseUser()`로 전역 상태 관리
-- **클래스 신청** — `class_applications` 테이블 INSERT + `classes.current_participants` UPDATE, 중복 신청 방지 (UNIQUE 제약)
-- **클래스 소유권** — `classes.user_id` 컬럼으로 등록자 추적
-- **내정보 클래스 내역** — 신청한 클래스 / 등록한 클래스 Supabase 조회 후 목록 표시
+- **클래스 신청** — `class_map` INSERT. 트리거가 `classes.current_participants` 자동 증가. 신청 후 `refreshClassData()` + `refreshNuxtData('classes')` + `refreshMyData()` 호출로 즉시 갱신
+- **신청 버튼 상태** — `useMyData.isApplied(id)` / `isOwn(id)` / `isLoading`으로 프론트에서 차단. myData 로딩 중엔 버튼 비활성화
+- **참가 인원 카운트** — `classes.current_participants` 사용 (DB 트리거 유지)
+- **내정보** — `useMyData.appliedClasses` (class_map → classes 조인), `createdClasses` (creator_id 또는 user_id 기준). 내정보 진입마다 `onMounted`에서 `refresh()` 호출
+- **클래스 소유권** — `classes.creator_id` 컬럼 (신규), 기존 데이터는 `user_id` fallback
 - 카테고리 필터 (전체/운동/러닝/수영/스터디/취미/클래스)
 - 검색창 (제목·카테고리·지역 필터링) — Enter 시 검색 화면으로 이동, URL `?q=` 파라미터 연동
 - 마감 임박 자동 감지 (3일 이내)
@@ -141,7 +146,9 @@ skill-for-lion-claude/
 - `frontend/.env` 파일에 Supabase 키 설정됨 (gitignore 제외, 로컬에만 존재)
 - `useAsyncData('classes', ...)` 키로 중복 fetch 방지 — 여러 컴포넌트에서 `useClasses()` 호출해도 1회만 요청
 - `ClassCardVertical`에 `fullWidth` prop 추가됨 — 검색 결과(2열 그리드)는 `:fullWidth="true"`, 가로 스크롤은 prop 없이 사용
-- `ClassCardVertical` "신청하기" 버튼은 `navigateTo('/classes/:id')`로 상세보기 이동 (emit 제거됨)
+- `ClassCardVertical` / `ClassCardHorizontal` 신청 버튼: `useMyData.isApplied/isOwn` 기준으로 표시. 카드 영역 클릭 → 상세보기, 버튼 클릭(`@click.stop`) → 신청 처리
+- RLS 주의: `class_map` SELECT는 본인 것만 조회 가능. `refresh()` 내부에서 반드시 `getSession()`으로 토큰 확인 후 쿼리할 것 (user reactive ref만으론 타이밍 이슈 있음)
+- `app.vue`의 `onAuthStateChange` — Supabase 토큰 준비 완료 시점에 정확히 발동. `useSupabaseUser()` watch보다 신뢰도 높음
 - 하단 네비게이션은 NuxtLink로 연결됨. 모든 탭 페이지 구현 완료
 - Auth: `useSupabaseUser()` (from `@nuxtjs/supabase`) — 세션은 쿠키로 자동 유지, 새로고침 후에도 로그인 상태 유지
 - `/auth?mode=signup` — 쿼리 파라미터로 초기 모드 설정 가능 (login/signup)
@@ -157,15 +164,18 @@ skill-for-lion-claude/
 
 | 리소스 | 설명 | 연동 여부 |
 |---|---|---|
-| `classes` 테이블 | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, user_id, created_at | ✅ 전체 화면 |
-| `class_applications` 테이블 | id, class_id, user_id, created_at (UNIQUE: class_id+user_id) | ✅ 상세보기 신청 / 내정보 신청 내역 |
+| `classes` 테이블 | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, creator_id, user_id, created_at | ✅ 전체 화면 |
+| `class_map` 테이블 | id, class_id, user_id, created_at (UNIQUE: class_id+user_id) | ✅ 신청 / 내정보 |
 | `class-thumbnails` Storage 버킷 | 클래스 등록 시 썸네일 이미지 저장 (public) | ✅ 등록 화면 |
 | Supabase Auth | 이메일/비밀번호 인증 | ✅ 로그인/회원가입/내정보 |
 
 RLS:
-- `classes`: anon SELECT (`public_read`), authenticated SELECT (`authenticated_read`), authenticated INSERT/UPDATE
-- `class_applications`: authenticated SELECT (본인 것만, `user_id = auth.uid()`), authenticated INSERT
+- `classes`: anon SELECT, authenticated INSERT (creator_id = auth.uid()), UPDATE/DELETE (creator_id 또는 user_id = auth.uid())
+- `class_map`: authenticated SELECT (본인 것만), authenticated INSERT (본인만)
 - `class-thumbnails`: anon SELECT + INSERT 허용
+
+DB 트리거:
+- `trg_class_map_increment` (AFTER INSERT on class_map) — `SECURITY DEFINER`로 RLS 우회하여 `classes.current_participants` 자동 증가
 
 현재 단계:
 - API 연결: ✅ Supabase REST API

@@ -81,7 +81,7 @@ const handleSubmit = async () => {
       current_participants: 0,
       thumbnail: thumbnailUrl,
       description: form.description.trim() || null,
-      user_id: user.value?.id ?? null,
+      creator_id: user.value?.id ?? null,
     })
     if (error) throw error
     await refreshNuxtData('classes')
