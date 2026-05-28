@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const supabase = useSupabaseClient()
+const user = useSupabaseUser()
 const router = useRouter()
 
 const categories = ['운동', '러닝', '수영', '스터디', '취미', '클래스']
@@ -80,6 +81,7 @@ const handleSubmit = async () => {
       current_participants: 0,
       thumbnail: thumbnailUrl,
       description: form.description.trim() || null,
+      user_id: user.value?.id ?? null,
     })
     if (error) throw error
     await refreshNuxtData('classes')

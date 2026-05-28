@@ -92,7 +92,7 @@ skill-for-lion-claude/
 
 ## 상태
 
-**회원가입/로그인 구현 완료 + 내정보 화면 연동** (2026-05-28)
+**유저 소유권 + 신청 기능 완료 + 내정보 화면 클래스 내역 표시** (2026-05-29)
 
 ### 디자인 시스템
 - **DESIGN.md 기반**: Nike 디자인 시스템 전면 적용
@@ -109,7 +109,7 @@ skill-for-lion-claude/
 - `app/pages/classes/[id].vue` — 클래스 상세보기 화면 (썸네일, 전체 정보, 하단 고정 CTA)
 - `app/pages/register.vue` — 클래스 등록 화면 (입력 폼, 썸네일 업로드, Supabase INSERT)
 - `app/pages/auth.vue` — 로그인/회원가입 화면 (모드 전환, 이메일 인증 안내, 에러 처리)
-- `app/pages/profile.vue` — 내정보 화면 (비로그인 CTA / 로그인 사용자 정보 + 로그아웃)
+- `app/pages/profile.vue` — 내정보 화면 (비로그인 CTA / 로그인: 사용자 정보 + 신청한 클래스 + 등록한 클래스 + 로그아웃)
 
 ### 구현된 컴포넌트
 - `app/components/ClassCardHorizontal.vue` — 가로형 클래스 카드 (추천 클래스용, flat Nike 스타일)
@@ -128,17 +128,20 @@ skill-for-lion-claude/
 - **Supabase 실데이터** — `classes` 테이블에서 fetch, 홈/검색/상세 모두 연동
 - **클래스 등록** — Supabase INSERT + Storage 썸네일 업로드, 성공 시 `refreshNuxtData('classes')` 캐시 갱신
 - **Supabase Auth** — 이메일/비밀번호 회원가입·로그인·로그아웃, `useSupabaseUser()`로 전역 상태 관리
+- **클래스 신청** — `class_applications` 테이블 INSERT + `classes.current_participants` UPDATE, 중복 신청 방지 (UNIQUE 제약)
+- **클래스 소유권** — `classes.user_id` 컬럼으로 등록자 추적
+- **내정보 클래스 내역** — 신청한 클래스 / 등록한 클래스 Supabase 조회 후 목록 표시
 - 카테고리 필터 (전체/운동/러닝/수영/스터디/취미/클래스)
 - 검색창 (제목·카테고리·지역 필터링) — Enter 시 검색 화면으로 이동, URL `?q=` 파라미터 연동
 - 마감 임박 자동 감지 (3일 이내)
-- 신청하기 버튼 → alert로 클래스 제목 표시
 - 홈 → 검색 화면 이동: Enter 키 / "전체 보기" 버튼 / 하단 네비게이션 검색 탭
-- 검색 → 클래스 상세보기 이동: 카드 클릭
+- 검색/홈 → 클래스 상세보기 이동: 카드 클릭, 카드 내 "신청하기" 버튼 클릭
 
 ### 다음 작업자 참고
 - `frontend/.env` 파일에 Supabase 키 설정됨 (gitignore 제외, 로컬에만 존재)
 - `useAsyncData('classes', ...)` 키로 중복 fetch 방지 — 여러 컴포넌트에서 `useClasses()` 호출해도 1회만 요청
 - `ClassCardVertical`에 `fullWidth` prop 추가됨 — 검색 결과(2열 그리드)는 `:fullWidth="true"`, 가로 스크롤은 prop 없이 사용
+- `ClassCardVertical` "신청하기" 버튼은 `navigateTo('/classes/:id')`로 상세보기 이동 (emit 제거됨)
 - 하단 네비게이션은 NuxtLink로 연결됨. 모든 탭 페이지 구현 완료
 - Auth: `useSupabaseUser()` (from `@nuxtjs/supabase`) — 세션은 쿠키로 자동 유지, 새로고침 후에도 로그인 상태 유지
 - `/auth?mode=signup` — 쿼리 파라미터로 초기 모드 설정 가능 (login/signup)
@@ -154,12 +157,14 @@ skill-for-lion-claude/
 
 | 리소스 | 설명 | 연동 여부 |
 |---|---|---|
-| `classes` 테이블 | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, created_at | ✅ 전체 화면 |
+| `classes` 테이블 | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, user_id, created_at | ✅ 전체 화면 |
+| `class_applications` 테이블 | id, class_id, user_id, created_at (UNIQUE: class_id+user_id) | ✅ 상세보기 신청 / 내정보 신청 내역 |
 | `class-thumbnails` Storage 버킷 | 클래스 등록 시 썸네일 이미지 저장 (public) | ✅ 등록 화면 |
 | Supabase Auth | 이메일/비밀번호 인증 | ✅ 로그인/회원가입/내정보 |
 
 RLS:
-- `classes`: anon SELECT (`public_read`), authenticated SELECT (`authenticated_read`), anon INSERT (`public_insert`)
+- `classes`: anon SELECT (`public_read`), authenticated SELECT (`authenticated_read`), authenticated INSERT/UPDATE
+- `class_applications`: authenticated SELECT (본인 것만, `user_id = auth.uid()`), authenticated INSERT
 - `class-thumbnails`: anon SELECT + INSERT 허용
 
 현재 단계:

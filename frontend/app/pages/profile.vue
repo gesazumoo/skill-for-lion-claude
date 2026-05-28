@@ -11,10 +11,48 @@ const handleLogout = async () => {
   navigateTo('/')
 }
 
-const formatDate = (dateStr: string) => {
+const formatJoinDate = (dateStr: string) => {
   const d = new Date(dateStr)
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 가입`
 }
+
+const formatClassDate = (dateStr: string) => {
+  const d = new Date(dateStr)
+  return `${d.getMonth() + 1}월 ${d.getDate()}일`
+}
+
+// 내가 등록한 클래스
+const { data: myClasses, refresh: refreshMyClasses } = await useAsyncData(
+  'my-classes',
+  async () => {
+    if (!user.value) return []
+    const { data } = await supabase
+      .from('classes')
+      .select('id, title, date, location, category, current_participants, max_participants')
+      .eq('user_id', user.value.id)
+      .order('created_at', { ascending: false })
+    return data ?? []
+  }
+)
+
+// 내가 신청한 클래스
+const { data: myApplications, refresh: refreshMyApplications } = await useAsyncData(
+  'my-applications',
+  async () => {
+    if (!user.value) return []
+    const { data } = await supabase
+      .from('class_applications')
+      .select('id, classes(id, title, date, location, category, current_participants, max_participants)')
+      .eq('user_id', user.value.id)
+      .order('created_at', { ascending: false })
+    return data ?? []
+  }
+)
+
+watch(() => user.value?.id, () => {
+  refreshMyClasses()
+  refreshMyApplications()
+})
 </script>
 
 <template>
@@ -65,20 +103,81 @@ const formatDate = (dateStr: string) => {
           </svg>
         </div>
         <p class="text-canvas text-base font-medium mb-1">{{ user.email }}</p>
-        <p v-if="user.created_at" class="text-stone text-xs">{{ formatDate(user.created_at) }}</p>
+        <p v-if="user.created_at" class="text-stone text-xs">{{ formatJoinDate(user.created_at) }}</p>
       </div>
 
-      <!-- 활동 정보 (추후 확장 영역) -->
+      <!-- ── 내가 신청한 클래스 ──────────────────────────────── -->
       <div class="px-4 py-6">
-        <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal mb-4">내 활동</p>
-        <div class="bg-soft-cloud px-4 py-5 flex items-center justify-between">
-          <span class="text-sm text-ink">신청한 클래스</span>
-          <span class="text-sm font-medium text-mute">준비 중</span>
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal">신청한 클래스</p>
+          <span class="text-xs text-mute">{{ (myApplications ?? []).length }}개</span>
         </div>
-        <div class="h-px bg-hairline-soft" />
-        <div class="bg-soft-cloud px-4 py-5 flex items-center justify-between">
-          <span class="text-sm text-ink">등록한 클래스</span>
-          <span class="text-sm font-medium text-mute">준비 중</span>
+
+        <div v-if="!myApplications || myApplications.length === 0" class="bg-soft-cloud px-4 py-6 text-center">
+          <p class="text-sm text-mute">신청한 클래스가 없습니다</p>
+        </div>
+
+        <div v-else class="flex flex-col">
+          <NuxtLink
+            v-for="app in myApplications"
+            :key="app.id"
+            :to="`/classes/${(app.classes as any)?.id}`"
+            class="flex items-center gap-4 py-4 border-b border-hairline-soft last:border-0 active:opacity-70 transition-opacity"
+          >
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-medium tracking-[0.15em] uppercase text-mute mb-1">
+                {{ (app.classes as any)?.category }}
+              </p>
+              <p class="text-sm font-medium text-ink leading-snug line-clamp-1 mb-1">
+                {{ (app.classes as any)?.title }}
+              </p>
+              <p class="text-xs text-mute">
+                {{ formatClassDate((app.classes as any)?.date) }} · {{ (app.classes as any)?.location }}
+              </p>
+            </div>
+            <svg class="w-4 h-4 text-mute flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5l7 7-7 7" />
+            </svg>
+          </NuxtLink>
+        </div>
+      </div>
+
+      <div class="h-px bg-hairline-soft" />
+
+      <!-- ── 내가 등록한 클래스 ──────────────────────────────── -->
+      <div class="px-4 py-6">
+        <div class="flex items-center justify-between mb-4">
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal">등록한 클래스</p>
+          <span class="text-xs text-mute">{{ (myClasses ?? []).length }}개</span>
+        </div>
+
+        <div v-if="!myClasses || myClasses.length === 0" class="bg-soft-cloud px-4 py-6 text-center">
+          <p class="text-sm text-mute">등록한 클래스가 없습니다</p>
+        </div>
+
+        <div v-else class="flex flex-col">
+          <NuxtLink
+            v-for="cls in myClasses"
+            :key="cls.id"
+            :to="`/classes/${cls.id}`"
+            class="flex items-center gap-4 py-4 border-b border-hairline-soft last:border-0 active:opacity-70 transition-opacity"
+          >
+            <div class="flex-1 min-w-0">
+              <p class="text-[10px] font-medium tracking-[0.15em] uppercase text-mute mb-1">
+                {{ cls.category }}
+              </p>
+              <p class="text-sm font-medium text-ink leading-snug line-clamp-1 mb-1">
+                {{ cls.title }}
+              </p>
+              <p class="text-xs text-mute">
+                {{ formatClassDate(cls.date) }} · {{ cls.location }}
+                <span class="ml-1">· {{ cls.current_participants }}/{{ cls.max_participants }}명</span>
+              </p>
+            </div>
+            <svg class="w-4 h-4 text-mute flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5l7 7-7 7" />
+            </svg>
+          </NuxtLink>
         </div>
       </div>
 

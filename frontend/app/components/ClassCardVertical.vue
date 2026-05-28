@@ -6,10 +6,6 @@ const props = defineProps<{
   fullWidth?: boolean
 }>()
 
-const emit = defineEmits<{
-  apply: [classItem: ClassItem]
-}>()
-
 const { isDeadlineSoon, getDeadlineDaysLeft, formatPrice, formatDate } = useClasses()
 
 const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
@@ -37,7 +33,7 @@ const spotsLeft = computed(() => props.classItem.maxParticipants - props.classIt
       </div>
       <!-- On-image CTA: white pill bottom-left (Nike button-outline-on-image) -->
       <button
-        @click="emit('apply', classItem)"
+        @click.stop="navigateTo('/classes/' + classItem.id)"
         class="absolute bottom-3 left-3 bg-canvas text-ink text-xs font-medium px-4 h-8 rounded-[30px] active:opacity-70 transition-opacity"
       >
         신청하기

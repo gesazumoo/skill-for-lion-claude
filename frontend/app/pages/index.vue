@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import type { ClassItem } from '~/composables/useClasses'
-
 const { classes, deadlineSoonClasses } = useClasses()
 
 const categories = ['전체', '운동', '러닝', '수영', '스터디', '취미', '클래스']
@@ -22,10 +20,6 @@ const filteredClasses = computed(() => {
   }
   return list
 })
-
-const handleApply = (classItem: ClassItem) => {
-  alert(`"${classItem.title}" 클래스에 신청되었습니다!`)
-}
 
 const goToSearch = () => {
   const q = searchQuery.value.trim()
@@ -153,7 +147,6 @@ const goToSearch = () => {
           v-for="item in deadlineSoonClasses"
           :key="item.id"
           :classItem="item"
-          @apply="handleApply"
         />
       </div>
     </section>

@@ -10,6 +10,7 @@ export interface ClassItem {
   thumbnail: string
   deadline: string
   description: string
+  userId?: string
 }
 
 interface ClassRow {
@@ -25,6 +26,7 @@ interface ClassRow {
   deadline: string
   description: string | null
   created_at: string
+  user_id?: string | null
 }
 
 const toClassItem = (row: ClassRow): ClassItem => ({
@@ -39,6 +41,7 @@ const toClassItem = (row: ClassRow): ClassItem => ({
   thumbnail: row.thumbnail ?? '',
   deadline: row.deadline,
   description: row.description ?? '',
+  userId: row.user_id ?? undefined,
 })
 
 export const useClasses = () => {
