@@ -175,9 +175,9 @@ const goToSearch = () => {
       </p>
 
       <!-- CTA: button-outline-on-image — canvas bg, ink text, pill, h-12 -->
-      <button class="bg-canvas text-ink text-sm font-medium px-8 h-12 rounded-[30px] active:opacity-70 transition-opacity">
+      <NuxtLink to="/register" class="inline-flex items-center bg-canvas text-ink text-sm font-medium px-8 h-12 rounded-[30px] active:opacity-70 transition-opacity">
         클래스 등록하기
-      </button>
+      </NuxtLink>
     </section>
 
     <!-- ══ 하단 네비게이션 ════════════════════════════════════ -->

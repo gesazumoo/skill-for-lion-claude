@@ -73,7 +73,7 @@ const handleApply = async () => {
 
     <!-- Metadata -->
     <div class="pt-2">
-      <p v-if="deadlineSoon" class="text-[11px] font-medium text-sale leading-none mb-1">
+      <p class="text-[11px] font-medium leading-none mb-1" :class="deadlineSoon ? 'text-sale' : 'invisible'">
         {{ daysLeft === 0 ? '오늘 마감' : `마감 D-${daysLeft}` }}
       </p>
       <p class="text-[13px] font-medium text-ink leading-snug line-clamp-2 mb-1">{{ classItem.title }}</p>
