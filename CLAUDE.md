@@ -73,51 +73,7 @@ skill-for-lion-claude/
 
 **Nuxt 4 with `app/` srcDir**: 모든 소스 코드는 `frontend/app/` 아래. `~/` alias가 `app/`을 가리킴. `nuxt.config.ts`는 `frontend/` 루트에 위치.
 
-**TailwindCSS v4 via Vite plugin**: `tailwind.config.ts` 없음. `nuxt.config.ts`의 `vite.plugins`에 `tailwindcss()`를 등록하고, `app/assets/css/main.css`에서 `@import "tailwindcss"`로 로드. 커스텀 테마 없이 arbitrary values(`[#0066cc]`, `[18px]`) 전용.
-
-**단일 데이터 소스**: `app/composables/useClasses.ts`가 모든 화면의 더미 데이터, 타입(`ClassItem`), 유틸(`isDeadlineSoon`, `formatPrice`, `formatDate`), 카테고리 목록(`CATEGORIES`)을 제공. API 연결 전까지 이 파일만 수정.
-
 **컴포넌트 자동 import**: `app/components/`의 컴포넌트는 import 없이 템플릿에서 바로 사용 가능. composables도 동일.
-
-## Design System (Nike — DESIGN.md 기반)
-
-현재 디자인 시스템은 `DESIGN.md`의 Nike 스펙을 따름. `/apply-design` 스킬로 `DESIGN.md` 교체 시 전체 재적용 가능.
-
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| Ink | `#111111` | 버튼, 헤드라인, active 상태 — 유일한 "color" |
-| Canvas | `#ffffff` | 페이지 배경, 카드 surface |
-| Soft Cloud | `#f5f5f5` | 이미지 배경, 검색 pill, secondary 섹션 |
-| Hairline | `#cacacb` | 1px 구분선 |
-| Mute | `#707072` | 보조 텍스트, 카테고리 |
-| Stone | `#9e9ea0` | 최하위 강조, on-dark 보조 |
-| Sale | `#d30005` | 에러/마감임박 — 유일한 red |
-| Success | `#007d48` | 신청완료, success 상태 |
-| Display font | Bebas Neue | 96px campaign hero, UPPERCASE |
-| Body font | Inter 400/500 | 모든 UI 텍스트 |
-| Card radius | `rounded-none` (0px) | 모든 카드, 컨테이너 |
-| Button shape | `rounded-[30px]` | 모든 pill CTA |
-| Shadow | 없음 | hairline inset만 sticky bar에 사용 |
-
-**섹션 리듬**: Ink hero → Canvas → Soft Cloud → Ink CTA band
-
-## Component Map
-
-| 컴포넌트 | 역할 |
-|---|---|
-| `ClassCard.vue` | 가로형 카드 — `variant="list"` (세로 리스트용) / `variant="scroll"` (가로 스크롤용) |
-| `ClassCardVertical.vue` | 세로형 카드 — 검색 결과 리스트용, `@select` emit |
-| `ClassDetail.vue` | 상세보기 바텀 시트 — `<Teleport to="body">`, `@close` emit |
-| `BottomNavigation.vue` | 하단 네비 — `active-menu` prop, router.push 내장 |
-
-## Routing
-
-| 경로 | 화면 |
-|---|---|
-| `/` | 홈 화면 — 추천/마감임박 클래스, CTA |
-| `/search?q=<query>` | 검색 화면 — 쿼리 파라미터로 초기 검색어 수신 |
-| `/register` | 미구현 (네비 버튼만 연결) |
-| `/profile` | 미구현 (네비 버튼만 연결) |
 
 ---
 
@@ -136,88 +92,47 @@ skill-for-lion-claude/
 
 ## 구현된 화면
 
-- **홈** (`pages/index.vue`) — Hero(검색+카테고리), 추천 리스트, 마감임박 스크롤, 등록 CTA
-- **검색** (`pages/search.vue`) — 검색바+필터(sticky), 세로형 카드 리스트, 상세보기 팝업
-- **등록** (`pages/register.vue`) — 클래스 등록 폼, Supabase INSERT, 이미지 업로드
-- **로그인/회원가입** (`pages/login.vue`) — 이메일/비밀번호 인증, 탭 전환 UI, 인증메일 안내
-- **내정보** (`pages/profile.vue`) — 로그인 상태에 따른 분기, 사용자 정보, 로그아웃
+- **홈** (`pages/index.vue`) — Hero(검색+카테고리 필터), 추천 클래스 가로 스크롤, 마감 임박 가로 스크롤, 등록 CTA 밴드
+- **검색** (`pages/search.vue`) — 검색바+카테고리 필터(sticky), 세로 스크롤 클래스 리스트, 클래스 상세보기 바텀 시트
 
-## 미구현
+## 미구현 (네비 버튼만 연결)
 
-- 마감 임박 기준일이 하드코딩 — API 연결 시 서버 시간 기준으로 교체 필요
+- `/register` — 등록 화면
+- `/profile` — 내정보 화면
 
----
+## 주요 파일
 
-# Supabase 연동 현황
-
-## 사용 테이블
-
-| 테이블 | 설명 |
+| 파일 | 역할 |
 |---|---|
-| `classes` | 클래스 목록 — 12개 초기 데이터 포함 |
-| `enrollments` | 클래스 신청 내역 — class_id + user_id 복합 unique |
+| `app/composables/useClasses.ts` | ClassItem 타입, CATEGORIES, 더미 데이터 14개, isDeadlineSoon / formatPrice / formatDate 유틸 |
+| `app/components/ClassCard.vue` | 가로형 카드 — `variant="scroll"` (가로 스크롤) / `variant="list"` (세로 리스트, 검색 화면용) |
+| `app/components/ClassCardVertical.vue` | 세로형 카드 — 홈 마감임박 가로 스크롤용, 신청하기 버튼(alert) 포함, `@select` emit |
+| `app/components/ClassDetail.vue` | 클래스 상세보기 바텀 시트 — `<Teleport to="body">`, `@close` emit, 신청하기 버튼 |
+| `app/components/BottomNavigation.vue` | 하단 네비 — `active-menu` prop, 라우트 기반 active 상태 |
+| `app/app.vue` | NuxtPage + BottomNavigation 전역 배치, 현재 라우트로 activeMenu 자동 계산 |
 
-**`classes` 컬럼**: `id`, `title`, `category`, `price`, `location`, `date`, `max_participants`, `current_participants`, `thumbnail`, `deadline`, `description`, `created_at`, `creator_id`
+## 검색 화면 동작
 
-**`enrollments` 컬럼**: `id`, `class_id`, `user_id`, `created_at`
+- 홈 검색바에서 Enter → `/search?q=<키워드>` 이동, 검색어 자동 입력
+- 하단 네비 검색 탭 클릭 → `/search` 이동
+- 검색어(title/category/location) + 카테고리 필터 동시 적용
+- 클래스 카드 클릭 → ClassDetail 바텀 시트 오픈 (overlay 클릭 또는 × 버튼으로 닫힘)
 
-DB의 snake_case 컬럼 → `ClassItem` camelCase 변환은 `useClasses.ts` 내부에서 처리.
+## 홈 화면 동작
 
-## 연결된 화면
+- Hero 영역: 검색창 Enter → `/search?q=<키워드>` 이동
+- 카테고리 버튼 클릭 → `/search?category=<카테고리>` 이동
+- 추천/마감임박 클래스 카드 클릭 → ClassDetail 바텀 시트 오픈
+- 등록 유도 CTA → `/register` 이동
 
-- 홈 (`/`) — 추천 클래스 목록, 마감 임박 클래스 모두 Supabase `classes` 테이블 조회
-- 검색 (`/search`) — 검색/필터/상세보기 모두 Supabase 데이터 기반
+## 데이터 현황
 
-## 데이터 흐름
+- **Supabase 미연결** — 더미 데이터만 사용
+- `useClasses.ts`의 DUMMY_CLASSES 14개로 화면 데이터 구성
+- 마감 임박 판단(`isDeadlineSoon`): 브라우저 로컬 시간 기준, 3일 이내
 
-```
-Supabase classes 테이블
-  → app/plugins/supabase.ts (클라이언트 초기화, $supabase 주입)
-  → app/composables/useClasses.ts (useAsyncData로 fetch, camelCase 매핑)
-  → pages/index.vue, pages/search.vue
-```
+## 다음 작업 참고
 
-## 환경 변수 (frontend/.env)
-
-```
-NUXT_PUBLIC_SUPABASE_URL=https://totwcjbvukmnfehhbfca.supabase.co
-NUXT_PUBLIC_SUPABASE_ANON_KEY=...
-```
-
-## 사용 테이블 / 스토리지
-
-| 리소스 | 설명 |
-|---|---|
-| `classes` 테이블 | 클래스 목록 — SELECT(공개) + INSERT(공개) RLS 정책 적용 |
-| `class-thumbnails` 버킷 | 썸네일 이미지 스토리지 — public 버킷, 읽기/쓰기 허용 |
-
-## 등록 화면 (`/register`) 상세
-
-- 입력 필드: 제목, 카테고리(pill 선택), 가격, 지역, 수업날짜, 마감날짜, 최대인원, 상세설명
-- 썸네일: 파일 선택 → FileReader 미리보기 → Supabase Storage 업로드 → public URL 저장
-  - 이미지 미선택 시 picsum 랜덤 이미지 사용
-- 등록 성공 시: `refreshNuxtData('classes')` → 토스트 메시지 → 1.5초 후 `/search` 이동
-- 입력값 검증: 필수 항목 + 마감날짜 < 수업날짜 조건
-
-## Auth 연동 현황
-
-| 기능 | 구현 방식 |
-|---|---|
-| 로그인/회원가입 | Supabase Auth 이메일/비밀번호 |
-| 전역 상태 관리 | `useState('auth-user')` — SSR 호환 |
-| 세션 초기화 | `supabase.ts` 플러그인 async 실행, `getSession()` |
-| 상태 변경 감지 | `onAuthStateChange` 리스너 |
-| 에러 메시지 | `useAuth.ts`의 `parseError()` — Supabase 영문 → 한국어 매핑 |
-
-**파일 구조:**
-- `app/plugins/supabase.ts` — 클라이언트 생성 + auth 초기화
-- `app/composables/useAuth.ts` — `user`, `isLoggedIn`, `signIn`, `signUp`, `signOut`
-
-## 다음 작업자 참고
-
-- 검색/필터는 클라이언트 사이드 필터링 (DB 쿼리 아님) — 데이터 많아지면 서버 사이드 쿼리로 전환 필요.
-- 마감 임박 판단(`isDeadlineSoon`)은 브라우저 로컬 시간 기준 — 서비스 운영 시 서버 시간 기준으로 교체 필요.
-- `@supabase/supabase-js` 직접 사용 (`@nuxtjs/supabase` 모듈 미사용).
-- 등록한 클래스 수정/삭제 미구현.
-- Supabase Email 인증 활성화 필요: Supabase 대시보드 > Authentication > Providers > Email.
-- enrollments 신청 취소 기능 미구현 — DELETE RLS 정책은 이미 추가되어 있음.
+- API 연결 시 `useClasses.ts`의 DUMMY_CLASSES 제거 후 Supabase fetch로 교체
+- 마감 임박 판단은 서비스 운영 시 서버 시간 기준으로 교체 필요
+- ClassDetail의 신청하기는 현재 alert — 실제 신청 API 연결 필요

@@ -1,68 +1,69 @@
 <script setup lang="ts">
 import type { ClassItem } from '~/composables/useClasses'
-import { useClasses } from '~/composables/useClasses'
+import { isDeadlineSoon, formatPrice, formatDate } from '~/composables/useClasses'
 
 const props = defineProps<{
   classItem: ClassItem
-  variant?: 'list' | 'scroll'
+  variant?: 'scroll' | 'list'
 }>()
 
-const emit = defineEmits<{ select: [item: ClassItem] }>()
-
-const { isDeadlineSoon, formatPrice, formatDate } = useClasses()
-const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
+const emit = defineEmits<{
+  select: [classItem: ClassItem]
+}>()
 </script>
 
 <template>
-  <!-- Scroll variant: square product card, 0 radius -->
+  <!-- scroll variant: 가로 스크롤용 세로 카드 -->
   <div
     v-if="variant === 'scroll'"
-    class="bg-white w-44 flex-shrink-0 cursor-pointer active:opacity-70 transition-opacity"
+    class="flex-shrink-0 w-[200px] cursor-pointer"
     @click="emit('select', classItem)"
   >
-    <div class="relative bg-[#f5f5f5] w-44 h-44">
-      <img :src="classItem.thumbnail" :alt="classItem.title" class="w-full h-full object-cover" />
+    <div class="relative bg-[#f5f5f5] aspect-square overflow-hidden">
+      <img
+        :src="classItem.thumbnail"
+        :alt="classItem.title"
+        class="w-full h-full object-cover"
+        loading="lazy"
+      />
       <span
-        v-if="deadlineSoon"
-        class="absolute top-2 left-2 text-[#d30005] text-[11px] font-[500] uppercase leading-none"
+        v-if="isDeadlineSoon(classItem.deadline)"
+        class="absolute top-2 left-2 bg-[#d30005] text-white text-[11px] font-medium px-2 py-1 rounded-[30px]"
       >마감임박</span>
     </div>
-    <div class="pt-2 pb-4">
-      <p class="text-[12px] font-[500] text-[#707072] uppercase tracking-[0.04em] mb-1">{{ classItem.category }}</p>
-      <p class="text-[16px] font-[500] text-[#111111] leading-[1.5] line-clamp-2">{{ classItem.title }}</p>
-      <p class="text-[14px] font-[500] text-[#707072] mt-0.5">{{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명</p>
-      <p class="text-[16px] font-[500] text-[#111111] mt-1">{{ formatPrice(classItem.price) }}</p>
+    <div class="pt-2">
+      <p class="text-[13px] text-[#707072] font-medium">{{ classItem.category }}</p>
+      <p class="text-[14px] font-medium text-[#111111] leading-snug mt-0.5 line-clamp-2">{{ classItem.title }}</p>
+      <p class="text-[14px] font-medium text-[#111111] mt-1">{{ formatPrice(classItem.price) }}</p>
+      <p class="text-[12px] text-[#9e9ea0] mt-0.5">{{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명</p>
     </div>
   </div>
 
-  <!-- List variant: horizontal row, 0 radius, hairline bottom border -->
+  <!-- list variant: 세로 리스트용 가로 카드 -->
   <div
     v-else
-    class="bg-white flex overflow-hidden cursor-pointer active:opacity-70 transition-opacity border-b border-[#e5e5e5]"
+    class="flex gap-3 cursor-pointer py-3 border-b border-[#e5e5e5] last:border-0"
     @click="emit('select', classItem)"
   >
-    <div class="relative bg-[#f5f5f5] w-28 h-28 flex-shrink-0">
-      <img :src="classItem.thumbnail" :alt="classItem.title" class="w-full h-full object-cover" />
+    <div class="relative flex-shrink-0 w-[100px] h-[100px] bg-[#f5f5f5] overflow-hidden">
+      <img
+        :src="classItem.thumbnail"
+        :alt="classItem.title"
+        class="w-full h-full object-cover"
+        loading="lazy"
+      />
       <span
-        v-if="deadlineSoon"
-        class="absolute top-2 left-2 text-[#d30005] text-[10px] font-[500] uppercase leading-none"
+        v-if="isDeadlineSoon(classItem.deadline)"
+        class="absolute top-1 left-1 bg-[#d30005] text-white text-[10px] font-medium px-1.5 py-0.5 rounded-[30px]"
       >마감임박</span>
     </div>
-    <div class="flex-1 p-3 flex flex-col justify-between min-w-0">
-      <div>
-        <p class="text-[12px] font-[500] text-[#707072] uppercase tracking-[0.04em] mb-0.5">{{ classItem.category }}</p>
-        <h3 class="text-[16px] font-[500] text-[#111111] leading-[1.5] line-clamp-2">{{ classItem.title }}</h3>
-        <p class="text-[14px] font-[500] text-[#707072] mt-1">{{ classItem.location }} · {{ formatDate(classItem.date) }}</p>
-        <p class="text-[14px] font-[500] text-[#707072]">{{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명</p>
-      </div>
+    <div class="flex-1 min-w-0 py-1">
+      <p class="text-[12px] text-[#707072] font-medium">{{ classItem.category }}</p>
+      <p class="text-[15px] font-medium text-[#111111] leading-snug mt-0.5 line-clamp-2">{{ classItem.title }}</p>
+      <p class="text-[12px] text-[#707072] mt-1">{{ formatDate(classItem.date) }} · {{ classItem.location }}</p>
       <div class="flex items-center justify-between mt-2">
-        <span class="text-[16px] font-[500] text-[#111111]">{{ formatPrice(classItem.price) }}</span>
-        <button
-          @click.stop="emit('select', classItem)"
-          class="bg-[#111111] text-white text-[14px] font-[500] px-5 h-10 rounded-[30px] active:opacity-60 transition-opacity"
-        >
-          신청하기
-        </button>
+        <p class="text-[14px] font-medium text-[#111111]">{{ formatPrice(classItem.price) }}</p>
+        <p class="text-[12px] text-[#9e9ea0]">{{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명</p>
       </div>
     </div>
   </div>

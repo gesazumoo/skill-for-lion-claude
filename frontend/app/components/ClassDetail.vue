@@ -1,189 +1,145 @@
 <script setup lang="ts">
 import type { ClassItem } from '~/composables/useClasses'
-import { useClasses } from '~/composables/useClasses'
+import { isDeadlineSoon, formatPrice, formatDate } from '~/composables/useClasses'
 
 const props = defineProps<{
-  classItem: ClassItem
+  classItem: ClassItem | null
 }>()
 
 const emit = defineEmits<{
   close: []
 }>()
 
-const { isDeadlineSoon, formatPrice, formatDate } = useClasses()
-const { isLoggedIn, user } = useAuth()
-const router = useRouter()
-const nuxtApp = useNuxtApp()
-
-const deadlineSoon = computed(() => isDeadlineSoon(props.classItem.deadline))
-const participantRate = computed(() =>
-  Math.round((props.classItem.currentParticipants / props.classItem.maxParticipants) * 100)
+const spotsLeft = computed(() =>
+  props.classItem ? props.classItem.maxParticipants - props.classItem.currentParticipants : 0
 )
-
-const isApplying = ref(false)
-const isApplied = ref(false)
-const applyError = ref('')
-
-async function handleApply() {
-  if (!isLoggedIn.value) {
-    emit('close')
-    router.push('/login')
-    return
-  }
-  if (isApplied.value) return
-  isApplying.value = true
-  applyError.value = ''
-  try {
-    const { error } = await (nuxtApp.$supabase as any)
-      .from('enrollments')
-      .insert({ class_id: props.classItem.id, user_id: user.value.id })
-    if (error) {
-      if (error.code === '23505') applyError.value = '이미 신청한 클래스입니다'
-      else throw error
-    } else {
-      isApplied.value = true
-      await refreshNuxtData('classes')
-      setTimeout(() => emit('close'), 1500)
-    }
-  } catch {
-    applyError.value = '신청 중 오류가 발생했습니다. 다시 시도해주세요.'
-  } finally {
-    isApplying.value = false
-  }
-}
 </script>
 
 <template>
   <Teleport to="body">
-    <div
-      class="fixed inset-0 z-50 flex items-end justify-center"
-      @click.self="emit('close')"
-    >
-      <div class="absolute inset-0 bg-black/60" @click="emit('close')" />
+    <Transition name="sheet">
+      <div v-if="classItem" class="fixed inset-0 z-50 flex flex-col justify-end">
+        <!-- 오버레이 -->
+        <div class="absolute inset-0 bg-black/50" @click="emit('close')" />
 
-      <!-- Sheet — flat top edge, Nike system -->
-      <div class="relative w-full max-w-lg bg-white max-h-[92vh] flex flex-col overflow-hidden">
+        <!-- 바텀 시트 -->
+        <div class="relative bg-white w-full max-h-[90vh] overflow-y-auto">
+          <!-- 드래그 핸들 -->
+          <div class="sticky top-0 bg-white pt-3 pb-2 flex justify-center border-b border-[#e5e5e5] z-10">
+            <div class="w-10 h-1 bg-[#cacacb] rounded-full" />
+          </div>
 
-        <!-- Drag handle -->
-        <div class="flex-shrink-0 flex justify-center pt-3 pb-1">
-          <div class="w-10 h-[3px] bg-[#cacacb]" />
-        </div>
+          <!-- 닫기 버튼 -->
+          <button
+            class="absolute top-3 right-4 w-8 h-8 flex items-center justify-center text-[#707072] z-10"
+            @click="emit('close')"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-        <!-- Close -->
-        <button
-          class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-[#f5f5f5] text-[#707072] text-xl leading-none z-10 active:opacity-60"
-          @click="emit('close')"
-        >×</button>
-
-        <!-- Scroll area -->
-        <div class="overflow-y-auto flex-1">
-
-          <!-- Thumbnail — full-bleed on soft-cloud, 0 radius -->
-          <div class="relative bg-[#f5f5f5]">
+          <!-- 썸네일 -->
+          <div class="aspect-[16/9] bg-[#f5f5f5] overflow-hidden">
             <img
               :src="classItem.thumbnail"
               :alt="classItem.title"
-              class="w-full h-56 object-cover"
+              class="w-full h-full object-cover"
             />
-            <span
-              v-if="deadlineSoon"
-              class="absolute top-3 left-3 text-[#d30005] text-[12px] font-[500] uppercase"
-            >마감임박</span>
           </div>
 
-          <!-- Content -->
-          <div class="px-6 pt-6 pb-4">
+          <!-- 콘텐츠 -->
+          <div class="px-5 pt-5 pb-8">
+            <!-- 마감임박 뱃지 -->
+            <span
+              v-if="isDeadlineSoon(classItem.deadline)"
+              class="inline-block bg-[#d30005] text-white text-[11px] font-medium px-2.5 py-1 rounded-[30px] mb-3"
+            >마감임박</span>
 
-            <p class="text-[12px] font-[500] text-[#707072] uppercase tracking-[0.04em] mb-2">
-              {{ classItem.category }}
-            </p>
+            <!-- 카테고리 -->
+            <p class="text-[13px] text-[#707072] font-medium">{{ classItem.category }}</p>
 
-            <h2 class="text-[32px] font-[500] text-[#111111] leading-[1.2]">
+            <!-- 제목 -->
+            <h2 class="text-[20px] font-medium text-[#111111] leading-snug mt-1 mb-4">
               {{ classItem.title }}
             </h2>
 
-            <p class="text-[32px] font-[500] text-[#111111] mt-3">
-              {{ formatPrice(classItem.price) }}
-            </p>
-
-            <div class="h-px bg-[#e5e5e5] my-5" />
-
-            <dl class="space-y-3">
-              <div class="flex items-start gap-3">
-                <dt class="text-[14px] font-[500] text-[#707072] w-14 flex-shrink-0 uppercase">날짜</dt>
-                <dd class="text-[16px] font-[400] text-[#111111]">{{ formatDate(classItem.date) }}</dd>
+            <!-- 메타 정보 -->
+            <div class="space-y-3 border-t border-[#e5e5e5] pt-4 mb-4">
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 text-[#707072] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="text-[14px] text-[#111111]">{{ formatDate(classItem.date) }}</span>
               </div>
-              <div class="flex items-start gap-3">
-                <dt class="text-[14px] font-[500] text-[#707072] w-14 flex-shrink-0 uppercase">장소</dt>
-                <dd class="text-[16px] font-[400] text-[#111111]">{{ classItem.location }}</dd>
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 text-[#707072] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-[14px] text-[#111111]">{{ classItem.location }}</span>
               </div>
-              <div class="flex items-start gap-3">
-                <dt class="text-[14px] font-[500] w-14 flex-shrink-0 uppercase" :class="deadlineSoon ? 'text-[#d30005]' : 'text-[#707072]'">마감일</dt>
-                <dd class="text-[16px] font-[400]" :class="deadlineSoon ? 'text-[#d30005]' : 'text-[#111111]'">
-                  {{ formatDate(classItem.deadline) }}
-                </dd>
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 text-[#707072] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="text-[14px] text-[#111111]">
+                  {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명 참가
+                  <span class="text-[#707072]">(잔여 {{ spotsLeft }}석)</span>
+                </span>
               </div>
-            </dl>
-
-            <div class="h-px bg-[#e5e5e5] my-5" />
-
-            <!-- Participants -->
-            <div>
-              <div class="flex justify-between items-baseline mb-2">
-                <p class="text-[14px] font-[500] text-[#111111] uppercase">참가 현황</p>
-                <p class="text-[14px] font-[500] text-[#707072]">
-                  {{ classItem.currentParticipants }}/{{ classItem.maxParticipants }}명
-                </p>
+              <div class="flex items-center gap-3">
+                <svg class="w-4 h-4 text-[#707072] flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="text-[14px]">
+                  마감 <span :class="isDeadlineSoon(classItem.deadline) ? 'text-[#d30005] font-medium' : 'text-[#111111]'">{{ formatDate(classItem.deadline) }}</span>
+                </span>
               </div>
-              <div class="h-[3px] bg-[#f5f5f5] overflow-hidden">
-                <div
-                  class="h-full bg-[#111111] transition-all"
-                  :style="{ width: `${participantRate}%` }"
-                />
-              </div>
-              <p class="text-[12px] font-[500] text-[#707072] uppercase mt-2">
-                잔여 {{ classItem.maxParticipants - classItem.currentParticipants }}자리
-              </p>
             </div>
 
-            <div class="h-px bg-[#e5e5e5] my-5" />
-
-            <!-- Description -->
-            <div>
-              <p class="text-[14px] font-[500] text-[#111111] uppercase mb-3">클래스 소개</p>
-              <p class="text-[16px] font-[400] text-[#111111] leading-[1.5]">
-                {{ classItem.description }}
-              </p>
+            <!-- 설명 -->
+            <div class="border-t border-[#e5e5e5] pt-4 mb-6">
+              <p class="text-[14px] text-[#111111] leading-relaxed">{{ classItem.description }}</p>
             </div>
 
-            <div class="h-6" />
+            <!-- 가격 + 신청하기 -->
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-[12px] text-[#707072]">참가비</p>
+                <p class="text-[22px] font-medium text-[#111111]">{{ formatPrice(classItem.price) }}</p>
+              </div>
+              <button
+                class="flex-1 py-3.5 bg-[#111111] text-white text-[15px] font-medium rounded-[30px]"
+                @click="alert(`'${classItem.title}' 클래스에 신청되었습니다.`)"
+              >
+                신청하기
+              </button>
+            </div>
           </div>
         </div>
-
-        <!-- CTA footer -->
-        <div class="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-6 py-4 space-y-2">
-          <p v-if="applyError" class="text-[13px] text-[#d30005] text-center font-[500] uppercase">
-            {{ applyError }}
-          </p>
-          <button
-            :disabled="isApplying || isApplied"
-            class="w-full text-[16px] font-[500] h-12 rounded-[30px] transition-opacity active:opacity-60 disabled:opacity-50"
-            :class="isApplied ? 'bg-[#007d48] text-white' : 'bg-[#111111] text-white'"
-            @click="handleApply"
-          >
-            <span v-if="isApplying" class="flex items-center justify-center gap-2">
-              <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4" />
-                <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-              </svg>
-              신청 중...
-            </span>
-            <span v-else-if="isApplied">신청 완료</span>
-            <span v-else>{{ isLoggedIn ? '신청하기' : '로그인 후 신청하기' }}</span>
-          </button>
-        </div>
-
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>
+
+<style scoped>
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity 0.25s ease;
+}
+.sheet-enter-active .relative,
+.sheet-leave-active .relative {
+  transition: transform 0.3s ease;
+}
+.sheet-enter-from,
+.sheet-leave-to {
+  opacity: 0;
+}
+.sheet-enter-from .relative {
+  transform: translateY(100%);
+}
+.sheet-leave-to .relative {
+  transform: translateY(100%);
+}
+</style>

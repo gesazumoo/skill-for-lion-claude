@@ -1,161 +1,159 @@
 <script setup lang="ts">
-import type { ClassItem } from '~/composables/useClasses'
 import { CATEGORIES, useClasses } from '~/composables/useClasses'
+import type { ClassItem } from '~/composables/useClasses'
 
-const { allClasses, deadlineSoonClasses, pending } = useClasses()
 const router = useRouter()
+const { featuredClasses, deadlineSoonClasses } = useClasses()
 
 const searchQuery = ref('')
-const activeCategory = ref('전체')
+const selectedCategory = ref('전체')
 const selectedClass = ref<ClassItem | null>(null)
 
-const filteredClasses = computed(() =>
-  allClasses.value.filter(c => {
-    const matchSearch =
-      !searchQuery.value ||
-      c.title.includes(searchQuery.value) ||
-      c.category.includes(searchQuery.value) ||
-      c.location.includes(searchQuery.value)
-    const matchCategory = activeCategory.value === '전체' || c.category === activeCategory.value
-    return matchSearch && matchCategory
-  })
-)
+function handleSearch() {
+  if (searchQuery.value.trim()) {
+    router.push(`/search?q=${encodeURIComponent(searchQuery.value.trim())}`)
+  } else {
+    router.push('/search')
+  }
+}
 
-function handleSearchSubmit() {
-  const q = searchQuery.value.trim()
-  router.push(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+function handleCategoryClick(category: string) {
+  selectedCategory.value = category
+  router.push(`/search?category=${encodeURIComponent(category)}`)
 }
 </script>
 
 <template>
-  <div class="min-h-screen bg-white max-w-lg mx-auto pb-[72px]">
+  <div class="min-h-screen bg-white pb-20">
 
-    <!-- ① Campaign Hero — ink bg, Bebas Neue display -->
-    <section class="bg-[#111111] px-5 pt-16 pb-10">
-
-      <p class="text-[12px] font-[500] text-[#9e9ea0] uppercase tracking-[0.12em] mb-5">
-        원데이 클래스
+    <!-- Hero 영역 -->
+    <section class="bg-[#111111] px-5 pt-12 pb-8">
+      <h1
+        class="text-white uppercase leading-[0.9] mb-3"
+        style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 10vw, 72px);"
+      >
+        오늘 바로<br/>참여 가능한<br/>원데이 클래스
+      </h1>
+      <p class="text-[#9e9ea0] text-[14px] font-medium mb-6">
+        운동, 취미, 스터디 — 원하는 클래스를 지금 찾아보세요
       </p>
 
-      <h1 class="font-display text-[80px] leading-[0.9] text-white uppercase mb-8">
-        ONE DAY<br />CLASS
-      </h1>
-
-      <!-- Search pill — soft-cloud, rounded.md = 24px -->
-      <div class="flex items-center gap-3 bg-[#f5f5f5] rounded-[24px] px-5 h-12">
-        <svg class="w-4 h-4 text-[#707072] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
+      <!-- 검색창 -->
+      <div class="relative">
         <input
           v-model="searchQuery"
           type="text"
-          placeholder="클래스, 카테고리, 지역으로 검색"
-          class="flex-1 text-[16px] font-[400] text-[#111111] placeholder-[#707072] outline-none bg-transparent"
-          @keydown.enter="handleSearchSubmit"
+          placeholder="클래스 검색"
+          class="w-full h-11 pl-4 pr-12 bg-white text-[#111111] text-[15px] rounded-[24px] outline-none placeholder:text-[#9e9ea0]"
+          @keyup.enter="handleSearch"
         />
+        <button
+          class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center bg-[#111111] rounded-full"
+          @click="handleSearch"
+        >
+          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
       </div>
 
-      <!-- Category filter chips — rounded.lg = 30px, inverted active -->
-      <div class="flex gap-2 mt-4 overflow-x-auto scrollbar-hide pb-1">
+      <!-- 카테고리 버튼 -->
+      <div class="flex gap-2 mt-4 overflow-x-auto pb-1 scrollbar-none">
         <button
-          v-for="cat in CATEGORIES"
-          :key="cat"
-          @click="activeCategory = cat"
-          class="flex-shrink-0 text-[12px] font-[500] tracking-[0.02em] px-4 py-2 rounded-[30px] transition-colors duration-100 whitespace-nowrap"
-          :class="activeCategory === cat
+          v-for="category in CATEGORIES"
+          :key="category"
+          class="flex-shrink-0 px-4 py-1.5 text-[13px] font-medium rounded-[30px] transition-colors"
+          :class="selectedCategory === category
             ? 'bg-white text-[#111111]'
-            : 'bg-transparent text-[#9e9ea0] border border-[#3a3a3a]'"
+            : 'bg-transparent text-[#9e9ea0] border border-[#444444]'"
+          @click="handleCategoryClick(category)"
         >
-          {{ cat }}
+          {{ category }}
         </button>
       </div>
     </section>
 
-    <!-- ② White — Recommended Classes -->
-    <section class="bg-white py-12">
-      <div class="flex items-baseline justify-between mb-0 px-5">
-        <h2 class="text-[32px] font-[500] text-[#111111] leading-[1.2] uppercase">
-          추천 클래스
-        </h2>
-        <span class="text-[14px] font-[500] text-[#707072] uppercase">
-          {{ pending ? '...' : `${filteredClasses.length}개` }}
-        </span>
+    <!-- 추천 클래스 영역 -->
+    <section class="pt-8 pb-6">
+      <div class="px-5 flex items-center justify-between mb-4">
+        <h2 class="text-[20px] font-medium text-[#111111]">추천 클래스</h2>
+        <button
+          class="text-[13px] text-[#707072] font-medium"
+          @click="router.push('/search')"
+        >전체보기</button>
       </div>
-
-      <div class="h-px bg-[#e5e5e5] mt-6 mb-0" />
-
-      <!-- Loading skeleton -->
-      <div v-if="pending">
-        <div v-for="i in 4" :key="i" class="h-28 bg-[#f5f5f5] animate-pulse border-b border-[#e5e5e5]" />
-      </div>
-
-      <!-- Card list — edge-to-edge, no padding -->
-      <div v-else-if="filteredClasses.length > 0">
+      <div class="flex gap-3 overflow-x-auto px-5 pb-2 scrollbar-none">
         <ClassCard
-          v-for="c in filteredClasses"
-          :key="c.id"
-          :class-item="c"
-          variant="list"
-          @select="selectedClass = $event"
-        />
-      </div>
-
-      <!-- Empty state -->
-      <div v-else class="py-16 text-center px-5">
-        <p class="text-[32px] font-[500] text-[#111111] uppercase mb-2">결과 없음</p>
-        <p class="text-[14px] font-[400] text-[#707072]">다른 검색어나 카테고리를 시도해보세요</p>
-      </div>
-    </section>
-
-    <!-- ③ Soft Cloud — Deadline Soon -->
-    <section v-if="pending || deadlineSoonClasses.length > 0" class="bg-[#f5f5f5] py-12">
-      <div class="px-5 mb-6">
-        <h2 class="text-[32px] font-[500] text-[#111111] leading-[1.2] uppercase">마감 임박</h2>
-        <p class="text-[14px] font-[400] text-[#707072] mt-1">3일 이내 마감되는 클래스</p>
-      </div>
-
-      <!-- Loading -->
-      <div v-if="pending" class="flex gap-0 px-5">
-        <div v-for="i in 3" :key="i" class="flex-shrink-0 w-44 h-56 bg-white animate-pulse mr-2" />
-      </div>
-
-      <div v-else class="flex gap-0 overflow-x-auto scrollbar-hide px-5 pb-1 gap-x-4">
-        <ClassCard
-          v-for="c in deadlineSoonClasses"
-          :key="c.id"
-          :class-item="c"
+          v-for="item in featuredClasses"
+          :key="item.id"
+          :class-item="item"
           variant="scroll"
           @select="selectedClass = $event"
         />
       </div>
     </section>
 
-    <!-- ④ CTA Band — ink, Bebas Neue campaign style -->
-    <section class="bg-[#111111] px-5 py-16 text-center">
-      <p class="text-[12px] font-[500] text-[#9e9ea0] uppercase tracking-[0.12em] mb-5">
-        클래스 호스트
-      </p>
-      <h2 class="font-display text-[64px] leading-[0.9] text-white uppercase mb-6">
-        YOUR CLASS<br />STARTS HERE
+    <!-- 구분선 -->
+    <div class="h-2 bg-[#f5f5f5]" />
+
+    <!-- 마감 임박 클래스 영역 -->
+    <section class="pt-8 pb-6">
+      <div class="px-5 flex items-center justify-between mb-4">
+        <h2 class="text-[20px] font-medium text-[#111111]">마감 임박</h2>
+        <span class="text-[12px] text-[#d30005] font-medium bg-[#fff0f0] px-2.5 py-1 rounded-[30px]">3일 이내 마감</span>
+      </div>
+
+      <div v-if="deadlineSoonClasses.length > 0" class="flex gap-4 overflow-x-auto px-5 pb-2 scrollbar-none">
+        <ClassCardVertical
+          v-for="item in deadlineSoonClasses"
+          :key="item.id"
+          :class-item="item"
+          @select="selectedClass = $event"
+        />
+      </div>
+      <div v-else class="px-5 py-8 text-center text-[#9e9ea0] text-[14px]">
+        현재 마감 임박 클래스가 없습니다
+      </div>
+    </section>
+
+    <!-- 구분선 -->
+    <div class="h-2 bg-[#f5f5f5]" />
+
+    <!-- 클래스 모집 등록 유도 영역 -->
+    <section class="bg-[#111111] px-5 py-12 text-center">
+      <p class="text-[#9e9ea0] text-[13px] font-medium uppercase tracking-wider mb-2">CLASS HOSTING</p>
+      <h2
+        class="text-white uppercase leading-[0.9] mb-4"
+        style="font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 8vw, 56px);"
+      >
+        나만의 클래스를<br/>직접 모집해보세요
       </h2>
-      <p class="text-[16px] font-[400] text-[#9e9ea0] mb-10 max-w-xs mx-auto leading-[1.5]">
-        지금 바로 클래스를 등록하고<br />함께할 사람들을 모집해보세요
+      <p class="text-[#9e9ea0] text-[14px] mb-8">
+        클래스를 직접 개설하고 수강생을 모집할 수 있어요
       </p>
-      <!-- button-outline-on-image: white pill on dark -->
       <button
-        class="inline-block bg-white text-[#111111] text-[16px] font-[500] px-8 h-12 rounded-[30px] transition-opacity active:opacity-60"
+        class="px-10 py-3 bg-white text-[#111111] text-[15px] font-medium rounded-[30px]"
         @click="router.push('/register')"
       >
         클래스 등록하기
       </button>
     </section>
 
+    <!-- 클래스 상세보기 바텀 시트 -->
     <ClassDetail
-      v-if="selectedClass"
       :class-item="selectedClass"
       @close="selectedClass = null"
     />
 
-
   </div>
 </template>
+
+<style scoped>
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+</style>

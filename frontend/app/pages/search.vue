@@ -4,126 +4,135 @@ import type { ClassItem } from '~/composables/useClasses'
 
 const route = useRoute()
 const router = useRouter()
-const { allClasses, pending } = useClasses()
+const { searchClasses } = useClasses()
 
-const searchQuery = ref(route.query.q?.toString() ?? '')
-const activeCategory = ref('전체')
+const searchQuery = ref((route.query.q as string) ?? '')
+const selectedCategory = ref((route.query.category as string) ?? '전체')
 const selectedClass = ref<ClassItem | null>(null)
 
-watch(() => route.query.q, (newQ) => {
-  searchQuery.value = newQ?.toString() ?? ''
-})
-
-const filteredClasses = computed(() =>
-  allClasses.value.filter(c => {
-    const matchSearch =
-      !searchQuery.value ||
-      c.title.includes(searchQuery.value) ||
-      c.category.includes(searchQuery.value) ||
-      c.location.includes(searchQuery.value)
-    const matchCategory = activeCategory.value === '전체' || c.category === activeCategory.value
-    return matchSearch && matchCategory
-  })
-)
+const results = computed(() => searchClasses(searchQuery.value, selectedCategory.value))
 
 function handleSearch() {
-  const q = searchQuery.value.trim()
-  router.replace(q ? `/search?q=${encodeURIComponent(q)}` : '/search')
+  router.replace({
+    query: {
+      ...(searchQuery.value ? { q: searchQuery.value } : {}),
+      ...(selectedCategory.value !== '전체' ? { category: selectedCategory.value } : {}),
+    }
+  })
+}
+
+function selectCategory(category: string) {
+  selectedCategory.value = category
+  handleSearch()
 }
 
 function clearSearch() {
   searchQuery.value = ''
-  router.replace('/search')
+  handleSearch()
 }
+
+watch(() => route.query, (q) => {
+  if (q.q !== undefined) searchQuery.value = q.q as string
+  if (q.category !== undefined) selectedCategory.value = q.category as string
+  else if (!q.category) selectedCategory.value = '전체'
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-white max-w-lg mx-auto pb-[72px]">
+  <div class="min-h-screen bg-white pb-20">
 
-    <!-- Sticky header — white, inset bottom hairline -->
-    <div class="sticky top-0 z-40 bg-white" style="box-shadow: inset 0 -1px 0 #e5e5e5;">
-
-      <div class="px-5 pt-14 pb-3">
-        <!-- Search pill — soft-cloud, rounded.md = 24px -->
-        <div class="flex items-center gap-3 bg-[#f5f5f5] rounded-[24px] px-5 h-12">
-          <svg class="w-4 h-4 text-[#707072] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+    <!-- 스티키 상단 영역 -->
+    <div class="sticky top-0 bg-white z-40 border-b border-[#e5e5e5]">
+      <!-- 검색바 -->
+      <div class="px-4 pt-4 pb-3">
+        <div class="relative">
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="클래스, 카테고리, 지역으로 검색"
-            class="flex-1 text-[16px] font-[400] text-[#111111] placeholder-[#707072] outline-none bg-transparent"
-            @keydown.enter="handleSearch"
+            placeholder="클래스 검색"
+            class="w-full h-11 pl-10 pr-10 bg-[#f5f5f5] text-[#111111] text-[15px] rounded-[24px] outline-none placeholder:text-[#9e9ea0] focus:bg-white focus:ring-2 focus:ring-[#111111] transition-colors"
+            @keyup.enter="handleSearch"
           />
+          <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#707072]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <button
             v-if="searchQuery"
-            class="text-[#707072] active:opacity-60 transition-opacity"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-[#9e9ea0]"
             @click="clearSearch"
           >
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Filter chips — rounded.lg = 30px, fully inverted active -->
-      <div class="flex gap-2 px-5 pb-3 overflow-x-auto scrollbar-hide">
+      <!-- 카테고리 필터 -->
+      <div class="flex gap-2 px-4 pb-3 overflow-x-auto scrollbar-none">
         <button
-          v-for="cat in CATEGORIES"
-          :key="cat"
-          @click="activeCategory = cat"
-          class="flex-shrink-0 text-[12px] font-[500] tracking-[0.02em] px-4 py-2 rounded-[30px] transition-colors duration-100 whitespace-nowrap border"
-          :class="activeCategory === cat
+          v-for="category in CATEGORIES"
+          :key="category"
+          class="flex-shrink-0 px-4 py-1.5 text-[13px] font-medium rounded-[30px] border transition-colors"
+          :class="selectedCategory === category
             ? 'bg-[#111111] text-white border-[#111111]'
             : 'bg-white text-[#111111] border-[#cacacb]'"
+          @click="selectCategory(category)"
         >
-          {{ cat }}
+          {{ category }}
         </button>
       </div>
     </div>
 
-    <!-- Results header -->
-    <div class="px-5 py-5 flex items-baseline gap-3 border-b border-[#e5e5e5]">
-      <span class="text-[32px] font-[500] text-[#111111] leading-[1.2] uppercase">클래스</span>
-      <span class="text-[14px] font-[500] text-[#707072] uppercase">
-        {{ pending ? '...' : `${filteredClasses.length}개` }}
-      </span>
+    <!-- 검색 결과 헤더 -->
+    <div class="px-4 py-3 flex items-center justify-between">
+      <p class="text-[13px] text-[#707072]">
+        <span v-if="searchQuery">
+          "<span class="text-[#111111] font-medium">{{ searchQuery }}</span>" 검색 결과
+        </span>
+        <span v-else-if="selectedCategory !== '전체'">
+          <span class="text-[#111111] font-medium">{{ selectedCategory }}</span> 클래스
+        </span>
+        <span v-else>전체 클래스</span>
+      </p>
+      <p class="text-[13px] text-[#707072]">{{ results.length }}개</p>
     </div>
 
-    <!-- Loading -->
-    <div v-if="pending" class="pb-8">
-      <div v-for="i in 5" :key="i" class="h-28 bg-[#f5f5f5] animate-pulse border-b border-[#e5e5e5]" />
-    </div>
-
-    <!-- Card list — full-width, no outer padding -->
-    <div v-else-if="filteredClasses.length > 0" class="pb-8">
-      <ClassCardVertical
-        v-for="c in filteredClasses"
-        :key="c.id"
-        :class-item="c"
-        @select="selectedClass = $event"
+    <!-- 검색 결과 리스트 -->
+    <div v-if="results.length > 0" class="px-4">
+      <ClassCard
+        v-for="item in results"
+        :key="item.id"
+        :class-item="item"
+        variant="list"
+        @select="selectedClass = item"
       />
     </div>
 
-    <!-- Empty state -->
-    <div v-else class="px-5 py-20 text-center">
-      <p class="text-[32px] font-[500] text-[#111111] uppercase mb-2">결과 없음</p>
-      <p class="text-[14px] font-[400] text-[#707072]">다른 검색어나 카테고리를 시도해보세요</p>
-      <button
-        class="mt-8 text-[16px] font-[500] text-[#111111] underline active:opacity-60 transition-opacity"
-        @click="clearSearch(); activeCategory = '전체'"
-      >
-        전체 클래스 보기
-      </button>
+    <!-- 결과 없음 -->
+    <div v-else class="flex flex-col items-center justify-center py-20 px-4 text-center">
+      <svg class="w-12 h-12 text-[#cacacb] mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
+      <p class="text-[16px] font-medium text-[#111111] mb-1">검색 결과가 없습니다</p>
+      <p class="text-[14px] text-[#707072]">다른 키워드나 카테고리로 검색해보세요</p>
     </div>
 
+    <!-- 클래스 상세보기 바텀 시트 -->
     <ClassDetail
-      v-if="selectedClass"
       :class-item="selectedClass"
       @close="selectedClass = null"
     />
 
   </div>
 </template>
+
+<style scoped>
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+</style>
