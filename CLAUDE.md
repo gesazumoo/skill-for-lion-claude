@@ -92,7 +92,7 @@ skill-for-lion-claude/
 
 ## 상태
 
-**등록 화면 구현 완료 + Supabase Storage 연동** (2026-05-28)
+**회원가입/로그인 구현 완료 + 내정보 화면 연동** (2026-05-28)
 
 ### 디자인 시스템
 - **DESIGN.md 기반**: Nike 디자인 시스템 전면 적용
@@ -108,6 +108,8 @@ skill-for-lion-claude/
 - `app/pages/search.vue` — 검색 화면 (sticky 검색창, 카테고리 필터, 2열 그리드 클래스 리스트)
 - `app/pages/classes/[id].vue` — 클래스 상세보기 화면 (썸네일, 전체 정보, 하단 고정 CTA)
 - `app/pages/register.vue` — 클래스 등록 화면 (입력 폼, 썸네일 업로드, Supabase INSERT)
+- `app/pages/auth.vue` — 로그인/회원가입 화면 (모드 전환, 이메일 인증 안내, 에러 처리)
+- `app/pages/profile.vue` — 내정보 화면 (비로그인 CTA / 로그인 사용자 정보 + 로그아웃)
 
 ### 구현된 컴포넌트
 - `app/components/ClassCardHorizontal.vue` — 가로형 클래스 카드 (추천 클래스용, flat Nike 스타일)
@@ -125,6 +127,7 @@ skill-for-lion-claude/
 ### 핵심 기능
 - **Supabase 실데이터** — `classes` 테이블에서 fetch, 홈/검색/상세 모두 연동
 - **클래스 등록** — Supabase INSERT + Storage 썸네일 업로드, 성공 시 `refreshNuxtData('classes')` 캐시 갱신
+- **Supabase Auth** — 이메일/비밀번호 회원가입·로그인·로그아웃, `useSupabaseUser()`로 전역 상태 관리
 - 카테고리 필터 (전체/운동/러닝/수영/스터디/취미/클래스)
 - 검색창 (제목·카테고리·지역 필터링) — Enter 시 검색 화면으로 이동, URL `?q=` 파라미터 연동
 - 마감 임박 자동 감지 (3일 이내)
@@ -136,7 +139,10 @@ skill-for-lion-claude/
 - `frontend/.env` 파일에 Supabase 키 설정됨 (gitignore 제외, 로컬에만 존재)
 - `useAsyncData('classes', ...)` 키로 중복 fetch 방지 — 여러 컴포넌트에서 `useClasses()` 호출해도 1회만 요청
 - `ClassCardVertical`에 `fullWidth` prop 추가됨 — 검색 결과(2열 그리드)는 `:fullWidth="true"`, 가로 스크롤은 prop 없이 사용
-- 하단 네비게이션은 NuxtLink로 연결됨. `/profile` 페이지는 미구현 상태
+- 하단 네비게이션은 NuxtLink로 연결됨. 모든 탭 페이지 구현 완료
+- Auth: `useSupabaseUser()` (from `@nuxtjs/supabase`) — 세션은 쿠키로 자동 유지, 새로고침 후에도 로그인 상태 유지
+- `/auth?mode=signup` — 쿼리 파라미터로 초기 모드 설정 가능 (login/signup)
+- `nuxt.config.ts`의 `supabase.redirect: false` — 인증 라우팅은 각 페이지에서 직접 처리
 - 클래스 상세보기는 `/classes/:id` 라우트, `useClasses().classes`로 id 매칭
 - 검색 URL 파라미터: `/search?q=키워드` — 홈 검색창 Enter 시 자동 전달
 - 등록 화면은 `useSupabaseClient()` 직접 사용 (useClasses 미사용) — INSERT + Storage upload
@@ -150,9 +156,10 @@ skill-for-lion-claude/
 |---|---|---|
 | `classes` 테이블 | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, created_at | ✅ 전체 화면 |
 | `class-thumbnails` Storage 버킷 | 클래스 등록 시 썸네일 이미지 저장 (public) | ✅ 등록 화면 |
+| Supabase Auth | 이메일/비밀번호 인증 | ✅ 로그인/회원가입/내정보 |
 
 RLS:
-- `classes`: anon SELECT 허용 (`public_read`), anon INSERT 허용 (등록 화면)
+- `classes`: anon SELECT (`public_read`), authenticated SELECT (`authenticated_read`), anon INSERT (`public_insert`)
 - `class-thumbnails`: anon SELECT + INSERT 허용
 
 현재 단계:
