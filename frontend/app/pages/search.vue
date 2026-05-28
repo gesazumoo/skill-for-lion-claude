@@ -4,7 +4,7 @@ import type { ClassItem } from '~/composables/useClasses'
 
 const route = useRoute()
 const router = useRouter()
-const { searchClasses } = useClasses()
+const { searchClasses, pending, error } = useClasses()
 
 const searchQuery = ref((route.query.q as string) ?? '')
 const selectedCategory = ref((route.query.category as string) ?? '전체')
@@ -124,11 +124,24 @@ watch(() => route.query, (q) => {
         </span>
         <span v-else>전체 클래스</span>
       </p>
-      <p style="font-size: 14px; font-weight: 500; color: #9e9ea0;">{{ results.length }}개</p>
+      <p style="font-size: 14px; font-weight: 500; color: #9e9ea0;">
+        {{ pending ? '...' : `${results.length}개` }}
+      </p>
+    </div>
+
+    <!-- 로딩 -->
+    <div v-if="pending" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center;">
+      <p style="font-size: 16px; font-weight: 400; color: #9e9ea0;">로딩 중...</p>
+    </div>
+
+    <!-- 에러 -->
+    <div v-else-if="error" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; text-align: center;">
+      <p style="font-size: 16px; font-weight: 500; color: #d30005; margin-bottom: 8px;">데이터를 불러오지 못했습니다</p>
+      <p style="font-size: 14px; font-weight: 400; color: #707072;">잠시 후 다시 시도해주세요</p>
     </div>
 
     <!-- 검색 결과 -->
-    <div v-if="results.length > 0" style="padding: 0 20px;">
+    <div v-else-if="results.length > 0" style="padding: 0 20px;">
       <ClassCard
         v-for="item in results"
         :key="item.id"

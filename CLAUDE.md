@@ -148,12 +148,48 @@ skill-for-lion-claude/
 
 ## 데이터 현황
 
-- **Supabase 미연결** — 더미 데이터만 사용
-- `useClasses.ts`의 DUMMY_CLASSES 14개로 화면 데이터 구성
+- **Supabase 연결 완료** — `lion-test` 프로젝트 (`totwcjbvukmnfehhbfca`)
+- `classes` 테이블 생성 및 14개 초기 데이터 시딩 완료
+- 더미 데이터(`DUMMY_CLASSES`) 제거 — Supabase fetch로 교체
 - 마감 임박 판단(`isDeadlineSoon`): 브라우저 로컬 시간 기준, 3일 이내
+
+## Supabase 테이블
+
+| 테이블 | 설명 | 연결된 화면 |
+|---|---|---|
+| `classes` | 클래스 목록 (조회 전용) | 홈, 검색 |
+
+### `classes` 테이블 컬럼
+
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `id` | BIGSERIAL | PK |
+| `title` | TEXT | 클래스 제목 |
+| `category` | TEXT | 카테고리 |
+| `price` | INTEGER | 가격 (원) |
+| `location` | TEXT | 지역 |
+| `date` | DATE | 진행 날짜 |
+| `max_participants` | INTEGER | 최대 인원 |
+| `current_participants` | INTEGER | 현재 신청 인원 |
+| `thumbnail` | TEXT | 썸네일 URL |
+| `deadline` | DATE | 신청 마감일 |
+| `description` | TEXT | 상세 설명 |
+| `created_at` | TIMESTAMPTZ | 생성 시각 |
+
+RLS: anon 역할에 SELECT 허용 (`public_read` 정책)
+
+## Supabase 연동 파일
+
+| 파일 | 역할 |
+|---|---|
+| `frontend/.env` | SUPABASE_URL, SUPABASE_ANON_KEY 환경변수 |
+| `frontend/nuxt.config.ts` | runtimeConfig.public 선언 |
+| `frontend/app/plugins/supabase.ts` | Supabase 클라이언트 생성 및 `$supabase`로 주입 |
+| `frontend/app/composables/useClasses.ts` | `useAsyncData('classes', ...)` 로 Supabase fetch |
 
 ## 다음 작업 참고
 
-- API 연결 시 `useClasses.ts`의 DUMMY_CLASSES 제거 후 Supabase fetch로 교체
 - 마감 임박 판단은 서비스 운영 시 서버 시간 기준으로 교체 필요
 - ClassDetail의 신청하기는 현재 alert — 실제 신청 API 연결 필요
+- 클래스 등록 화면(`/register`) 구현 시 INSERT API 연결 필요
+- `$supabase` 타입 자동 완성을 위해 Nuxt 플러그인 타입 선언 추가 가능 (`plugins/supabase.d.ts`)

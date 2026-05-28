@@ -3,7 +3,7 @@ import { CATEGORIES, useClasses } from '~/composables/useClasses'
 import type { ClassItem } from '~/composables/useClasses'
 
 const router = useRouter()
-const { featuredClasses, deadlineSoonClasses } = useClasses()
+const { featuredClasses, deadlineSoonClasses, pending, error } = useClasses()
 
 const searchQuery = ref('')
 const selectedCategory = ref('전체')
@@ -151,7 +151,13 @@ function handleCategoryClick(category: string) {
           @click="router.push('/search')"
         >전체보기</button>
       </div>
-      <div class="card-scroll-row">
+      <div v-if="pending" style="padding: 24px 20px; color: #9e9ea0; font-size: 14px; font-weight: 400;">
+        로딩 중...
+      </div>
+      <div v-else-if="error" style="padding: 24px 20px; color: #d30005; font-size: 14px; font-weight: 400;">
+        데이터를 불러오지 못했습니다
+      </div>
+      <div v-else class="card-scroll-row">
         <ClassCard
           v-for="item in featuredClasses"
           :key="item.id"
@@ -180,7 +186,13 @@ function handleCategoryClick(category: string) {
           text-transform: uppercase;
         ">3일 이내</span>
       </div>
-      <div v-if="deadlineSoonClasses.length > 0" class="card-scroll-row" style="padding-bottom: 48px;">
+      <div v-if="pending" style="padding: 24px 20px 48px; color: #9e9ea0; font-size: 14px; font-weight: 400;">
+        로딩 중...
+      </div>
+      <div v-else-if="error" style="padding: 24px 20px 48px; color: #d30005; font-size: 14px; font-weight: 400;">
+        데이터를 불러오지 못했습니다
+      </div>
+      <div v-else-if="deadlineSoonClasses.length > 0" class="card-scroll-row" style="padding-bottom: 48px;">
         <ClassCardVertical
           v-for="item in deadlineSoonClasses"
           :key="item.id"
