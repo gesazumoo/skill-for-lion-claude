@@ -132,13 +132,12 @@ const handleSubmit = async () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
-          <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute">클래스 등록</p>
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal">클래스 등록</p>
         </div>
       </div>
 
       <!-- 안내 헤드라인 -->
-      <div class="bg-ink px-4 pt-8 pb-7">
-        <p class="text-stone text-[10px] font-medium tracking-[0.25em] uppercase mb-3">강사 모드</p>
+      <div class="bg-ink px-4" style="padding-top: 40px; padding-bottom: 32px;">
         <h1 class="font-display text-[40px] text-canvas leading-[0.92]">나만의<br>클래스 등록</h1>
       </div>
 
@@ -147,12 +146,12 @@ const handleSubmit = async () => {
 
         <!-- ── 썸네일 ─────────────────────────────────────── -->
         <div class="px-4 py-6">
-          <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute mb-3">썸네일 이미지</p>
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal mb-3">썸네일 이미지</p>
           <input
             ref="fileInputRef"
             type="file"
             accept="image/*"
-            class="hidden"
+            style="display:none"
             @change="onFileChange"
           />
           <button
@@ -185,7 +184,7 @@ const handleSubmit = async () => {
 
         <!-- ── 기본 정보 ─────────────────────────────────── -->
         <div class="px-4 py-6 flex flex-col gap-4">
-          <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute">기본 정보</p>
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal">기본 정보</p>
 
           <!-- 제목 -->
           <div>
@@ -193,7 +192,7 @@ const handleSubmit = async () => {
               v-model="form.title"
               type="text"
               placeholder="클래스 제목"
-              class="w-full bg-soft-cloud px-4 h-12 text-sm text-ink outline-none placeholder-stone"
+              class="w-full bg-soft-cloud px-4 h-12 text-sm text-ink outline-none placeholder-mute"
               @input="clearError('title')"
             />
             <p v-if="errors.title" class="text-[11px] text-sale mt-1 px-1">{{ errors.title }}</p>
@@ -201,7 +200,7 @@ const handleSubmit = async () => {
 
           <!-- 카테고리 -->
           <div>
-            <div class="flex gap-2 flex-wrap">
+            <div class="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
               <button
                 v-for="cat in categories"
                 :key="cat"
@@ -209,8 +208,8 @@ const handleSubmit = async () => {
                 @click="form.category = cat; clearError('category')"
                 :class="form.category === cat
                   ? 'bg-ink text-canvas'
-                  : 'bg-soft-cloud text-mute'"
-                class="px-4 py-2 rounded-[30px] text-sm font-medium transition-colors"
+                  : 'bg-soft-cloud text-ink'"
+                class="px-5 py-2.5 rounded-[30px] text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors"
               >
                 {{ cat }}
               </button>
@@ -224,7 +223,7 @@ const handleSubmit = async () => {
               v-model="form.description"
               placeholder="클래스 상세 설명"
               rows="4"
-              class="w-full bg-soft-cloud px-4 py-3 text-sm text-ink outline-none placeholder-stone resize-none"
+              class="w-full bg-soft-cloud px-4 py-3 text-sm text-ink outline-none placeholder-mute resize-none"
             />
           </div>
         </div>
@@ -233,7 +232,7 @@ const handleSubmit = async () => {
 
         <!-- ── 일정 ──────────────────────────────────────── -->
         <div class="px-4 py-6 flex flex-col gap-4">
-          <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute">일정</p>
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal">일정</p>
 
           <div>
             <label class="text-[11px] text-stone mb-1 block px-1">클래스 날짜</label>
@@ -262,14 +261,14 @@ const handleSubmit = async () => {
 
         <!-- ── 장소 & 인원 ────────────────────────────────── -->
         <div class="px-4 py-6 flex flex-col gap-4">
-          <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute">장소 & 인원</p>
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal">장소 & 인원</p>
 
           <div>
             <input
               v-model="form.location"
               type="text"
               placeholder="지역 (예: 서울 강남구)"
-              class="w-full bg-soft-cloud px-4 h-12 text-sm text-ink outline-none placeholder-stone"
+              class="w-full bg-soft-cloud px-4 h-12 text-sm text-ink outline-none placeholder-mute"
               @input="clearError('location')"
             />
             <p v-if="errors.location" class="text-[11px] text-sale mt-1 px-1">{{ errors.location }}</p>
@@ -281,7 +280,7 @@ const handleSubmit = async () => {
               type="number"
               min="1"
               placeholder="최대 참가 인원"
-              class="w-full bg-soft-cloud px-4 h-12 text-sm text-ink outline-none placeholder-stone"
+              class="w-full bg-soft-cloud px-4 h-12 text-sm text-ink outline-none placeholder-mute"
               @input="clearError('maxParticipants')"
             />
             <p v-if="errors.maxParticipants" class="text-[11px] text-sale mt-1 px-1">{{ errors.maxParticipants }}</p>
@@ -292,14 +291,14 @@ const handleSubmit = async () => {
 
         <!-- ── 참가비 ─────────────────────────────────────── -->
         <div class="px-4 py-6">
-          <p class="text-[10px] font-medium tracking-[0.2em] uppercase text-mute mb-4">참가비</p>
+          <p class="text-xs font-medium tracking-[0.15em] uppercase text-charcoal mb-4">참가비</p>
           <div class="relative">
             <input
               v-model="form.price"
               type="number"
               min="0"
               placeholder="0"
-              class="w-full bg-soft-cloud px-4 pr-10 h-12 text-sm text-ink outline-none placeholder-stone"
+              class="w-full bg-soft-cloud px-4 pr-10 h-12 text-sm text-ink outline-none placeholder-mute"
               @input="clearError('price')"
             />
             <span class="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-mute">원</span>
@@ -328,7 +327,7 @@ const handleSubmit = async () => {
             type="button"
             @click="handleSubmit"
             :disabled="isLoading"
-            class="flex-[2] bg-ink text-canvas text-sm font-medium h-12 rounded-[30px] transition-opacity active:opacity-70 disabled:opacity-40 flex items-center justify-center gap-2"
+            class="flex-1 bg-ink text-canvas text-sm font-medium h-12 rounded-[30px] transition-opacity active:opacity-70 disabled:opacity-40 flex items-center justify-center gap-2"
           >
             <svg v-if="isLoading" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
