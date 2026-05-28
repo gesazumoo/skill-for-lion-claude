@@ -92,7 +92,7 @@ skill-for-lion-claude/
 
 ## 상태
 
-**검색 화면 + 클래스 상세보기 화면 구현 완료** (2026-05-28)
+**Supabase 연동 완료 + 검색/홈/상세보기 실데이터 적용** (2026-05-28)
 
 ### 디자인 시스템
 - **DESIGN.md 기반**: Nike 디자인 시스템 전면 적용
@@ -114,13 +114,15 @@ skill-for-lion-claude/
 - `app/components/BottomNavigation.vue` — 하단 네비게이션 (NuxtLink로 실제 라우팅 연결)
 
 ### 구현된 Composable
-- `app/composables/useClasses.ts` — 더미 데이터 14개, isDeadlineSoon/formatPrice/formatDate 유틸
+- `app/composables/useClasses.ts` — Supabase `classes` 테이블 fetch, snake_case → camelCase 매핑, isDeadlineSoon/formatPrice/formatDate 유틸
 
 ### 설치된 패키지
 - `tailwindcss` + `@tailwindcss/vite` — TailwindCSS v4 (Vite 플러그인 방식)
+- `@nuxtjs/supabase` — Supabase 클라이언트 모듈 (useSupabaseClient 자동 import)
 - Google Fonts: Black Han Sans + Inter (main.css @import)
 
 ### 핵심 기능
+- **Supabase 실데이터** — `classes` 테이블에서 fetch, 홈/검색/상세 모두 연동
 - 카테고리 필터 (전체/운동/러닝/수영/스터디/취미/클래스)
 - 검색창 (제목·카테고리·지역 필터링) — Enter 시 검색 화면으로 이동, URL `?q=` 파라미터 연동
 - 마감 임박 자동 감지 (3일 이내)
@@ -129,17 +131,24 @@ skill-for-lion-claude/
 - 검색 → 클래스 상세보기 이동: 카드 클릭
 
 ### 다음 작업자 참고
+- `frontend/.env` 파일에 Supabase 키 설정됨 (gitignore 제외, 로컬에만 존재)
+- `useAsyncData('classes', ...)` 키로 중복 fetch 방지 — 여러 컴포넌트에서 `useClasses()` 호출해도 1회만 요청
 - `ClassCardVertical`에 `fullWidth` prop 추가됨 — 검색 결과(2열 그리드)는 `:fullWidth="true"`, 가로 스크롤은 prop 없이 사용
 - 하단 네비게이션은 NuxtLink로 연결됨. `/register`, `/profile` 페이지는 미구현 상태
-- 클래스 상세보기는 `/classes/:id` 라우트. 현재 더미 데이터 기반이며, `useClasses().classes`로 id 매칭
+- 클래스 상세보기는 `/classes/:id` 라우트, `useClasses().classes`로 id 매칭
 - 검색 URL 파라미터: `/search?q=키워드` — 홈 검색창 Enter 시 자동 전달
 
-## Supabase 테이블 (DB는 유지됨)
+## Supabase 연동 현황
 
-`lion-test` 프로젝트 (`totwcjbvukmnfehhbfca`)의 테이블은 그대로 유지됨.
+`lion-test` 프로젝트 (`totwcjbvukmnfehhbfca`) — **홈/검색/상세보기 연동 완료**
 
-| 테이블 | 컬럼 요약 |
-|---|---|
-| `classes` | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, created_at |
+| 테이블 | 컬럼 요약 | 연동 여부 |
+|---|---|---|
+| `classes` | id, title, category, price, location, date, max_participants, current_participants, thumbnail, deadline, description, created_at | ✅ 홈/검색/상세보기 |
 
 RLS: anon 역할에 SELECT 허용 (`public_read` 정책)
+
+현재 단계:
+- API 연결: ✅ Supabase REST API
+- DB 연결: ✅ classes 테이블
+- 더미 데이터: ❌ 제거됨
