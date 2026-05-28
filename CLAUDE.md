@@ -100,16 +100,33 @@ skill-for-lion-claude/
 - `/register` — 등록 화면
 - `/profile` — 내정보 화면
 
+## 디자인 시스템
+
+**Apple Design Language** (`DESIGN.md` 기반) 적용 완료.
+
+- **폰트**: Inter (Google Fonts) — SF Pro 대체, weight 300/400/600/700
+- **Primary**: `#0066cc` (Action Blue) — 버튼, 링크, 아이콘 active 상태
+- **Canvas**: `#ffffff` / Parchment: `#f5f5f7` / Dark Tile: `#272729`
+- **Ink**: `#1d1d1f` / Muted: `#7a7a7a` / On-dark: `#ffffff` / On-dark muted: `#cccccc`
+- **Border**: `#e0e0e0` (hairline) / `rgba(0,0,0,0.08)` (divider-soft)
+- **Radius**: 9999px (pill), 18px (utility card), 8px (compact utility), 0 (full-bleed tile)
+- **Shadow**: 없음 (UI 요소에 shadow 미사용)
+- **Body**: 17px / 400 / lh 1.47 / ls -0.374px
+- **Display**: 34-56px / 600 / lh 1.07-1.10 / ls -0.28~-0.374px
+- **Section padding**: 80px (spacing.section)
+- **Section rhythm**: dark tile → white canvas → parchment → dark CTA band
+
 ## 주요 파일
 
 | 파일 | 역할 |
 |---|---|
 | `app/composables/useClasses.ts` | ClassItem 타입, CATEGORIES, 더미 데이터 14개, isDeadlineSoon / formatPrice / formatDate 유틸 |
-| `app/components/ClassCard.vue` | 가로형 카드 — `variant="scroll"` (가로 스크롤) / `variant="list"` (세로 리스트, 검색 화면용) |
-| `app/components/ClassCardVertical.vue` | 세로형 카드 — 홈 마감임박 가로 스크롤용, 신청하기 버튼(alert) 포함, `@select` emit |
+| `app/components/ClassCard.vue` | Apple store-utility-card 스타일 — `variant="scroll"` (18px radius, hairline border) / `variant="list"` (검색 화면용) |
+| `app/components/ClassCardVertical.vue` | 마감임박 세로 카드 — 18px radius, primary blue pill 신청하기 버튼, `@select` emit |
 | `app/components/ClassDetail.vue` | 클래스 상세보기 바텀 시트 — `<Teleport to="body">`, `@close` emit, 신청하기 버튼 |
-| `app/components/BottomNavigation.vue` | 하단 네비 — `active-menu` prop, 라우트 기반 active 상태 |
+| `app/components/BottomNavigation.vue` | 하단 네비 — frosted glass (parchment 85% + backdrop-blur), active=#0066cc, inactive=#7a7a7a |
 | `app/app.vue` | NuxtPage + BottomNavigation 전역 배치, 현재 라우트로 activeMenu 자동 계산 |
+| `nuxt.config.ts` | Google Fonts Inter 로드 (head.link), @tailwindcss/vite 플러그인 |
 
 ## 검색 화면 동작
 
@@ -120,10 +137,12 @@ skill-for-lion-claude/
 
 ## 홈 화면 동작
 
-- Hero 영역: 검색창 Enter → `/search?q=<키워드>` 이동
-- 카테고리 버튼 클릭 → `/search?category=<카테고리>` 이동
+- Hero 영역 (near-black #272729): 검색창 Enter → `/search?q=<키워드>` 이동
+- 카테고리 칩 클릭 → `/search?category=<카테고리>` 이동
+- 추천 클래스 섹션 (white): 가로 스크롤 카드, 전체보기 → `/search`
+- 마감 임박 섹션 (parchment): 가로 스크롤 카드
 - 추천/마감임박 클래스 카드 클릭 → ClassDetail 바텀 시트 오픈
-- 등록 유도 CTA → `/register` 이동
+- CTA 밴드 (near-black): 클래스 등록하기 → `/register`, 클래스 둘러보기 → `/search`
 
 ## 데이터 현황
 
